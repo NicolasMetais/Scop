@@ -5,7 +5,6 @@
 #include <include/glad/glad.h>
 #include <Window.hpp>
 
-
 class Renderer {
 	private:
 		GLuint VBO;

@@ -1,7 +1,7 @@
 NAME = Scop
 CC = c++
 CFLAGS = -Wall -Wextra -Werror -Iincludes -Iloader -std=c++17 -g3 $(shell sdl2-config --cflags) -fPIE
-LDFLAGS = $(shell sdl2-config --libs) -lGL -fPIE
+LDFLAGS = $(shell sdl2-config --libs) -lGL -lz -fPIE
 
 SRCS =	srcs/main.cpp \
 		srcs/Window.cpp \
@@ -12,6 +12,7 @@ SRCS =	srcs/main.cpp \
 		srcs/Transform.cpp \
 		srcs/Texture.cpp \
 		srcs/Event.cpp \
+		srcs/Material.cpp \
 		loader/src/glad.c \
 
 OBJ_DIR = obj

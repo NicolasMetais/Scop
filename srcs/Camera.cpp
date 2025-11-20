@@ -1,9 +1,7 @@
 #include <Camera.hpp>
 
 Camera::Camera(float w, float h, Math::Vec3 pos) {
-	this->cameraPos.x = pos.x;
-	this->cameraPos.y = pos.y;
-	this->cameraPos.z = pos.z;
+	this->cameraPos = pos;
 	// U = Math::Vec3(1.0f, 0.0f, 0.0f);
 	// V = Math::Vec3(0.0f, 1.0f, 0.0f);
 	// N = Math::Vec3(0.0f, 0.0f, 1.0f);
@@ -12,8 +10,6 @@ Camera::Camera(float w, float h, Math::Vec3 pos) {
 	this->fov = 45.0f * (3.1415926f / 180.0f);
 	this->aspect = w / h;
 	this->speed = 0.1f;
-	this->near = 0.2f;
-	this->far = 1000.0f;
 };
 
 Camera::Camera(float w, float h, Math::Vec3& pos, Math::Vec3& target, Math::Vec3& up) {
@@ -24,6 +20,9 @@ Camera::Camera(float w, float h, Math::Vec3& pos, Math::Vec3& target, Math::Vec3
 	this->target.normalize();
 	this->up = up;
 	this->up.normalize();
+	this->fov = 45.0f * (3.1415926f / 180.0f);
+	this->aspect = w / h;
+	this->speed = 0.1f;
 	cameraInit();
 };
 
@@ -63,16 +62,16 @@ void Camera::mouseActions() {
 	this->angleV += DeltaY * 0.1f;
 	if (this->angleV > 89.0f) angleV = 89.0f;
 	if (this->angleV < -89.0f) angleV = -89.0f;
-	//cameraUpdate();
+	cameraUpdate();
 };
 
 void Camera::cameraUpdate() {
 	Math::Vec3 Yaxis(0.0f, 1.0f, 0.0f);
 
 	Math::Vec3 View(1.0f, 0.0f, 0.0f);
+
 	View.Rotate(this->angleH, Yaxis);
 	View.normalize();
-	std::cout << "View: "<< "X: "<< View.x << " Y: " << View.y << " Z: " << View.z << std::endl;
 
 	Math::Vec3 U = Yaxis.cross(View);
 	U.normalize();
@@ -85,8 +84,6 @@ void Camera::cameraUpdate() {
 	
 	up = target.cross(U);
 	up.normalize();
-	std::cout << "target: "<< "X: "<< View.x << " Y: " << View.y << " Z: " << View.z << std::endl;
-
 };
 
 void Camera::setFar(const ObjModel& obj) {
@@ -131,15 +128,15 @@ void Camera::moveBackward() {
 }
 
 void Camera::moveLeft() {
-	Math::Vec3 Left = target.cross(up);
-	Left *= this->speed;
-	this->cameraPos -= Left;
+	Math::Vec3 Right = target.cross(up);
+	Right.normalize();
+	this->cameraPos += Right * this->speed;
 }
 
 void Camera::moveRight() {
-	Math::Vec3 Right = up.cross(target);
-	Right *= this->speed;
-	this->cameraPos -= Right;
+	Math::Vec3 Right = target.cross(up);
+	Right.normalize();
+	this->cameraPos -= Right * this->speed;
 }
 
 void Camera::speedUp() {

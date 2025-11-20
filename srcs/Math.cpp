@@ -24,7 +24,6 @@ namespace Math {
 		this->y = W.y;
 		this->z = W.z;
 	};
-
 	Vec4 Vec4::normalize() const {
 		float n;
 		n = norm();

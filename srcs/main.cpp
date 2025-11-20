@@ -11,7 +11,6 @@
 #define WIDTH 1500
 
 int main(int ac, char **av) {
-	(void)av;
     if (ac != 2)
     {
 		std::cerr << "Error: Invalid format" << std::endl;
@@ -24,23 +23,21 @@ int main(int ac, char **av) {
 		Transform transform;
 		transform.setScale(1.0f);
 		Math::Vec3 pos = {0.0f, 0.0f ,5.0f};
-		Math::Vec3 target = {0.0f, 0.0f ,0.0f};
+		Math::Vec3 target = {0.0f, 0.0f ,1.0f};
 		Math::Vec3 up = {0.0f, 1.0f ,0.0f};
-		Camera camera((float)WIDTH, (float)HEIGHT, pos);
+		Camera camera((float)WIDTH, (float)HEIGHT, pos, target, up);
 		Renderer render;
 		render.InitObj(teapot);
 		camera.setFar(teapot);
 		bool run = true;
 		bool triggerTexture = false;
 		Texture texture;
-		texture.loadBMP("resources/Gollum.bmp");
+		texture.loadTexture("resources/Gollum.bmp");
 		SDL_Event e;
 		while(run)
 		{
 			while (SDL_PollEvent(&e))
-			{
 				event(e, transform, camera, run, triggerTexture);
-			}
 			glClearColor(0.5f,0.5f,0.5f,1.0f);
 			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 			Math::Matrix4f model = transform.getModelMatrix();
@@ -61,9 +58,6 @@ int main(int ac, char **av) {
 	}
 	catch (std::exception& e) {
 		std::cerr << e.what() << std::endl;
-	}
-	catch (...) {
-		std::cerr << "Unknown Error" << std::endl;
 	}
 	return (0);
 }
