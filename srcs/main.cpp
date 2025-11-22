@@ -51,10 +51,10 @@ int main(int ac, char **av) {
 			}
 			else
 				texture.unbind();
-			render.renderObj(MVP);
+			render.renderObj(MVP, teapot);
 			SDL_GL_SwapWindow(window.getWin());
 		}
-		render.cleanup();
+		render.cleanup(teapot);
 	}
 	catch (std::exception& e) {
 		std::cerr << e.what() << std::endl;

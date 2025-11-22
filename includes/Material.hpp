@@ -39,6 +39,14 @@ class Material {
 		void setMap_bump(const unsigned int& val) { this->bump = val;}
 		std::string getName() const { return this->name;}
 		Math::Vec3 getKd() const { return this->Kd;}
+		Math::Vec3 getKa() const { return this->Ka;}
+		Math::Vec3 getKs() const { return this->Ks;}
+		float getNs() const { return this->Ns;}
+		float getNi() const { return this->Ni;}
+		float getd() const { return this->d;}
+		int getIllum() const { return this->illum;}
+
+
 
 
 };

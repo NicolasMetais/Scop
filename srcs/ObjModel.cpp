@@ -208,19 +208,15 @@ void ObjModel::loadObj(const std::string& filename) {
 
 	float scaleFactor = 1.0f / radius;
 
+	std::unordered_map<std::string, MaterialMesh> tempMesh;
 	for (size_t faceIndex = 0; faceIndex < f.size(); ++faceIndex) {
 		const auto& face = f[faceIndex];
-		std::array<float, 3> col; //je build mon rgb
-		Material* matptr = nullptr;
-		if (!face.materialName.empty() && materials.count(face.materialName))
-			matptr = &materials[face.materialName];
-		if (matptr) {
-			Math::Vec3 kd = matptr->getKd();
-			col = {kd.x, kd.y, kd.z}; 
-		}
-		else {
-			col = colors[faceIndex % colors.size()];
-		}
+
+		std::string matName = face.materialName.empty() ? "None" : face.materialName;
+		if (tempMesh.find(matName) == tempMesh.end())
+			tempMesh[matName].mat = (materials.count(matName) ? &materials[matName] : nullptr);
+		MaterialMesh& mesh = tempMesh[matName];
+
 		for (size_t j = 1; j + 1 < face.fvertices.size(); ++j) {
 			FaceVertex fv0 = face.fvertices[0];
 			FaceVertex fv1 = face.fvertices[j];
@@ -228,6 +224,13 @@ void ObjModel::loadObj(const std::string& filename) {
 
 			Math::Vec3 pos0 = v[fv0.v], pos1 = v[fv1.v], pos2 = v[fv2.v];
 
+			std::array<float, 3> col; //je build mon rgb
+			if (mesh.mat) {
+				Math::Vec3 kd = mesh.mat->getKd();
+				col = {kd.x, kd.y, kd.z}; 
+			}
+			else
+				col = colors[faceIndex % colors.size()];
 			Math::Vec3 n0, n1, n2;
 			if (fv0.vn != -1) 
 				n0 = vn[fv0.vn];
@@ -270,29 +273,32 @@ void ObjModel::loadObj(const std::string& filename) {
 				float y = (pos.y - center.y) * scaleFactor;
 				float z = (pos.z - center.z) * scaleFactor;
 
-				centeredVertices.push_back(x);
-				centeredVertices.push_back(y);
-				centeredVertices.push_back(z);
+				mesh.vertices.push_back(x);
+				mesh.vertices.push_back(y);
+				mesh.vertices.push_back(z);
 
-				centeredVertices.push_back(col[0]);
-				centeredVertices.push_back(col[1]);
-				centeredVertices.push_back(col[2]);
+				mesh.vertices.push_back(col[0]);
+				mesh.vertices.push_back(col[1]);
+				mesh.vertices.push_back(col[2]);
 
 				//a remettre quand les normales sont codees
-				// centeredVertices.push_back(norm.x);
-				// centeredVertices.push_back(norm.y);
-				// centeredVertices.push_back(norm.z);
+				// mesh.vertices.push_back(norm.x);
+				// mesh.vertices.push_back(norm.y);
+				// mesh.vertices.push_back(norm.z);
 				if (isUV)
 				{
-					centeredVertices.push_back(uv.x);
-					centeredVertices.push_back(uv.y);
+					mesh.vertices.push_back(uv.x);
+					mesh.vertices.push_back(uv.y);
 				}
 				else
 				{
-					centeredVertices.push_back((0.5f + atan2(z, x) / (2.0f * M_PI) * 20.0f));
-					centeredVertices.push_back((0.5f - asin(y / radius) / M_PI) * 20.0f);
+					mesh.vertices.push_back((0.5f + atan2(z, x) / (2.0f * M_PI) * 20.0f));
+					mesh.vertices.push_back((0.5f - asin(y / radius) / M_PI) * 20.0f);
 				}
 			}
 		}
 	}
+	meshes.clear();
+	for (auto& pair : tempMesh)
+		meshes.push_back(std::move(pair.second));
 }

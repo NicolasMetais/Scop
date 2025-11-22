@@ -7,14 +7,11 @@
 
 class Renderer {
 	private:
-		GLuint VBO;
-		GLuint VAO;
-		GLsizei vertexCount;
 		GLuint shaderProgram;
 	public:
 		Renderer() {};
-		void renderObj(Math::Matrix4f& model);
+		void renderObj(Math::Matrix4f& model, ObjModel& obj);
 		void InitObj(ObjModel& obj);
-		void cleanup();
+		void cleanup(ObjModel& obj);
 		GLuint getShader() { return shaderProgram; };
 };
