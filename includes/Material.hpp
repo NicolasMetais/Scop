@@ -38,5 +38,7 @@ class Material {
 		void setTexture(const std::string& path, const unsigned int& val);
 		void setMap_bump(const unsigned int& val) { this->bump = val;}
 		std::string getName() const { return this->name;}
+		Math::Vec3 getKd() const { return this->Kd;}
+
 
 };

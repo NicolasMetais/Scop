@@ -19,6 +19,8 @@ class Texture {
 		~Texture() { if (id) glDeleteTextures(1, &id); };
 		GLuint getId() const { return this->id; };
 		void loadTexture(const std::string& path);
+		void openGlTextureGen(std::vector<unsigned char> data, int bpp);
+		void scanlineInterpreter(std::vector<unsigned char>& textures, std::vector<unsigned char>& decompressed, size_t bpp);
 		void bind() const { glBindTexture(GL_TEXTURE_2D, id); };
 		void unbind() const { glBindTexture(GL_TEXTURE_2D, 0); };
 };

@@ -20,6 +20,7 @@ class ObjModel {
 		Math::Vec3 minVert;
 		Math::Vec3 maxVert;
 		float radius;
+		std::string currentMaterial;
 		struct FaceVertex {
 			int v;
 			int vt;
@@ -27,6 +28,7 @@ class ObjModel {
 		};
 		struct Face {
 			std::vector<FaceVertex> fvertices;
+			std::string materialName;
 		};
 		std::unordered_map <std::string, Material> materials;
 		std::vector<Face> f;

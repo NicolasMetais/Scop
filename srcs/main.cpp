@@ -32,7 +32,7 @@ int main(int ac, char **av) {
 		bool run = true;
 		bool triggerTexture = false;
 		Texture texture;
-		texture.loadTexture("resources/Gollum.bmp");
+		texture.loadTexture("resources/test.png");
 		SDL_Event e;
 		while(run)
 		{

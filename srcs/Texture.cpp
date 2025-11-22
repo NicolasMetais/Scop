@@ -11,7 +11,7 @@ void Texture::loadTexture(const std::string& path) {
 
 
 void Texture::loadBMP(const std::string& path) {
-	std::ifstream file(path, std::ios::binary); 
+	std::ifstream file(path, std::ios::binary);
 	if (!file.is_open())
 		throw std::runtime_error("bmp file opening error");
 	unsigned char header[54];
@@ -38,9 +38,9 @@ void Texture::loadBMP(const std::string& path) {
 	}
 	file.close();
 	
-	glGenTextures(1, &id);
+	glGenTextures(1, &this->id);
 
-	glBindTexture(GL_TEXTURE_2D, id);
+	glBindTexture(GL_TEXTURE_2D, this->id);
 
 	//sert a repeter la texture plusieurs fois 
 	//si elle est trop petite par rapport au model
@@ -121,28 +121,102 @@ int samplePerPixel(uint8_t colorType) {
 	}
 }
 
-void scanlineInterpreter(std::vector<unsigned char> textures, std::vector<unsigned char> decompressed, int bpp, u_int32_t width, u_int32_t height) {
-	unsigned char *prev_line;
-	int stride = 1 + width * bpp; //taille reel d'une scanline +1 byte pour le byte de filtre
-	for(size_t i = 0; i < height; i++) {
+unsigned char paethPredictor(unsigned char a, unsigned char b, unsigned char c)
+{
+    int p = (int)a + (int)b - (int)c;
+    int pa = std::abs(p - a);
+    int pb = std::abs(p - b);
+    int pc = std::abs(p - c);
+    if (pa <= pb && pa <= pc) return a;
+    else if (pb <= pc) return b;
+    else return c;
+}
+
+void Texture::scanlineInterpreter(std::vector<unsigned char>& textures, std::vector<unsigned char>& decompressed, size_t bpp) {
+	std::vector<unsigned char>prev_line(this->width * bpp, 0);
+	textures.reserve(this->width * this->height * bpp);
+	int stride = 1 + this->width * bpp; //taille reel d'une scanline +1 byte pour le byte de filtre
+	for(size_t i = 0; i < this->height; i++) {
 		unsigned char *scanline = decompressed.data() + i * stride;
 		unsigned char filter = scanline[0];
-		unsigned char * line = new unsigned char[width * bpp];
-		for (size_t j = 0; j < width * bpp; j++) {
+		std::vector<unsigned char> line(this->width * bpp, 0);
+		for (size_t j = 0; j < this->width * bpp; j++) {
 			unsigned char left = 0;
 			unsigned char above = 0;
 			unsigned char upper_left = 0;
 
-			if (i >= bpp)
+			if (j >= bpp)
 				left = line[j - bpp];
 			if (i > 0)
 				above = prev_line[j];
-			if (i >= bpp && i > 0)
+			if (i > 0 && j >= bpp)
 				upper_left = prev_line[j - bpp];
+			switch (filter)
+			{
+				case 0:
+					line[j] = static_cast<unsigned char>(scanline[j + 1]);
+					break ;
+				case 1:
+					line[j] = static_cast<unsigned char>(scanline[j + 1] + left);
+					break ;
+				case 2:
+					line[j] = static_cast<unsigned char>(scanline[j + 1] + above);
+					break ;
+				case 3:
+					line[j] = static_cast<unsigned char>(scanline[j + 1] + ((left + above) / 2));
+					break ;
+				case 4:
+					line[j] = static_cast<unsigned char>(scanline[j + 1] + paethPredictor(left, above, upper_left));
+					break ;
+				default:
+					throw std::runtime_error("Unknown filter type");
+			}
 		}
+		textures.insert(textures.end(), line.begin(), line.end());
+		prev_line = std::move(line);
 	}
 }
 
+void signCheck(std::array<unsigned char, 8>& signature) {
+	unsigned char expected[8] = {
+			0x89, 'P', 'N', 'G', 0x0D, 0x0A, 0x1A, 0x0A
+		}; //signature attendu sur tout les png
+	if (!std::equal(std::begin(signature), std::end(signature), std::begin(expected)))
+		throw std::runtime_error("Invalid signature");
+}
+
+void crcCheck(std::ifstream& file, char type[5], std::vector<unsigned char>& data) {
+	uint32_t crc = readUint32FromFile(file); //Je stock le crc. il sert a verif l'integrite des donne apres loading
+	uint32_t calc_crc = crc32(0L, Z_NULL, 0); //init d'un crc vide
+	calc_crc = crc32(calc_crc, reinterpret_cast<const Bytef*>(type), 4); //je met le type
+	calc_crc = crc32(calc_crc, data.data(), data.size()); //je met la data
+	if (calc_crc != crc) // je compare si les deux crc sont les meme
+		throw std::runtime_error("CRC mismatch"); //check la validite de la data avec crc
+}
+
+void Texture::openGlTextureGen(std::vector<unsigned char> data, int bpp) {
+	glGenTextures(1, &this->id);
+
+	glBindTexture(GL_TEXTURE_2D, this->id);
+
+	//sert a repeter la texture plusieurs fois 
+	//si elle est trop petite par rapport au model
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	//gestion de la texture si elle est scale en plus petit
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	//gestion de la texture si elle est scale en plus grand
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+	GLenum format = (bpp == 4) ? GL_RGBA : GL_RGB;
+	GLenum inputFormat = (bpp == 4) ? GL_RGBA : GL_RGB;
+
+	glTexImage2D(GL_TEXTURE_2D, 0, format,
+             width, height, 0, inputFormat, GL_UNSIGNED_BYTE, data.data());
+
+	// glTexImage2D(GL_TEXTURE_2D, 0, format, this->width, this->height, 0, inputFormat, GL_UNSIGNED_BYTE, data.data());
+	glGenerateMipmap(GL_TEXTURE_2D);
+}
 
 void Texture::loadPNG(const std::string& path) {
 	uint8_t bitDepth;
@@ -158,12 +232,7 @@ void Texture::loadPNG(const std::string& path) {
 	file.read(reinterpret_cast<char *>(signature.data()), 8);
 	if (file.gcount() != 8)
 		throw std::runtime_error("Invalid signature");
-	//METTRE UNE ERREUR SI MOINS DE 8 CHAR
-	unsigned char expected[8] = {
-		0x89, 'P', 'N', 'G', 0x0D, 0x0A, 0x1A, 0x0A
-	}; //signature attendu sur tout les png
-	if (!std::equal(std::begin(signature), std::end(signature), std::begin(expected)))
-		throw std::runtime_error("Invalid signature");
+	signCheck(signature);
 	int i = 0;
 	std::vector<unsigned char> compressedData;
 	while (true) {
@@ -189,20 +258,27 @@ void Texture::loadPNG(const std::string& path) {
 			compressionMethod = data[10];
 			filterMethod = data[11];
 			interlaceMethod = data[12];
+			if (compressionMethod != 0)
+				throw std::runtime_error("Unsupported compression method");
+			if (filterMethod != 0)
+				throw std::runtime_error("Unsupported filter method");
+			if (interlaceMethod > 1)
+				throw std::runtime_error("Unsupported interlace method");
 		}
 		else if (std::strncmp(type, "IEND", 4) == 0)
 			break ;
-		uint32_t crc = readUint32FromFile(file); //Je stock le crc. il sert a verif l'integrite des donne apres loading
-		uint32_t calc_crc = crc32(0L, Z_NULL, 0); //init d'un crc vide
-		calc_crc = crc32(calc_crc, reinterpret_cast<const Bytef*>(type), 4); //je met le type
-		calc_crc = crc32(calc_crc, data.data(), data.size()); //je met la data
-		if (calc_crc != crc) // je compare si les deux crc sont les meme
-			throw std::runtime_error("CRC mismatch"); //check la validite de la data avec crc
+		crcCheck(file, type, data);
 		i++;
 	}
+	if (compressedData.empty())
+   		throw std::runtime_error("No data found");
 	int bpp = (bitDepth * samplePerPixel(colorType) + 7) / 8;
-	std::vector<unsigned char> decompressed = inflatePNG(compressedData, bpp);
+	size_t stride = 1 + width * bpp;
+	size_t expectedSize = stride * height;
+	std::vector<unsigned char> decompressed = inflatePNG(compressedData, expectedSize);
 	std::vector<unsigned char> textures;
-	scanlineInterpreter(textures, decompressed, bpp, width, height);
+	scanlineInterpreter(textures, decompressed, bpp);
+	std::vector<unsigned char> flipped;
+	openGlTextureGen(textures, bpp);
 };
 

@@ -47,9 +47,10 @@ std::string trim(const std::string& str) {
 
 void ObjModel::loadMtlFile(const std::string& fileName) {
 	std::ifstream file;
-	file.open(fileName);
+	std::cout << fileName << std::endl;
+	file.open("resources/" + fileName);
 	if (!file.is_open())
-		throw std::runtime_error("Error: cannot open file");
+		throw std::runtime_error("Error: cannot open mtl file");
 	std::string line;
 	Material current;
 	while (std::getline(file, line)) {
@@ -138,6 +139,7 @@ void ObjModel::loadObj(const std::string& filename) {
 		else if (token == "f")
 		{
 			Face face;
+			face.materialName = currentMaterial;
 			std::string vertStr;
 			while (iss >> vertStr) {
 				face.fvertices.push_back(parseFaceElement(vertStr));
@@ -157,6 +159,18 @@ void ObjModel::loadObj(const std::string& filename) {
 			if ((!(iss >> vec.x >> vec.y >> vec.z)))
 				throw std::runtime_error("Error : Invalid vn value");
 			vn.push_back(vec);
+		}
+		else if (token == "mtllib")
+		{
+			std::string mtlFile;
+			iss >> mtlFile;
+			loadMtlFile(mtlFile);
+		}
+		else if (token == "usemtl")
+		{
+			std::string name;
+			iss >> name;
+			this->currentMaterial = name;
 		}
 	}
 	file.close();
@@ -196,8 +210,17 @@ void ObjModel::loadObj(const std::string& filename) {
 
 	for (size_t faceIndex = 0; faceIndex < f.size(); ++faceIndex) {
 		const auto& face = f[faceIndex];
-		const auto& col = colors[faceIndex % colors.size()];
-
+		std::array<float, 3> col; //je build mon rgb
+		Material* matptr = nullptr;
+		if (!face.materialName.empty() && materials.count(face.materialName))
+			matptr = &materials[face.materialName];
+		if (matptr) {
+			Math::Vec3 kd = matptr->getKd();
+			col = {kd.x, kd.y, kd.z}; 
+		}
+		else {
+			col = colors[faceIndex % colors.size()];
+		}
 		for (size_t j = 1; j + 1 < face.fvertices.size(); ++j) {
 			FaceVertex fv0 = face.fvertices[0];
 			FaceVertex fv1 = face.fvertices[j];
