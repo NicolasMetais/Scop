@@ -1,4 +1,5 @@
-#include <ObjModel.hpp>
+#include <Mesh.hpp>
+#include <Matrix/Matrix.hpp>
 #include <Window.hpp>
 #include <Transform.hpp>
 #include <Renderer.hpp>
@@ -18,10 +19,11 @@ int main(int ac, char **av) {
 	}
 	try {
 		Window window(WIDTH, HEIGHT);
-		ObjModel teapot;
+		Mesh teapot;
 		teapot.loadObj(std::string(av[1]));
 		Transform transform;
 		transform.setScale(1.0f);
+		transform.setPosition(0, 0, 0);
 		Math::Vec3 pos = {0.0f, 0.0f ,5.0f};
 		Math::Vec3 target = {0.0f, 0.0f ,1.0f};
 		Math::Vec3 up = {0.0f, 1.0f ,0.0f};
@@ -51,7 +53,7 @@ int main(int ac, char **av) {
 			}
 			else
 				texture.unbind();
-			render.renderObj(MVP, teapot);
+			render.renderObj(MVP, teapot, model);
 			SDL_GL_SwapWindow(window.getWin());
 		}
 		render.cleanup(teapot);

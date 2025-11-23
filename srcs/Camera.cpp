@@ -86,7 +86,7 @@ void Camera::cameraUpdate() {
 	up.normalize();
 };
 
-void Camera::setFar(const ObjModel& obj) {
+void Camera::setFar(const Mesh& obj) {
 	float camZ = obj.getMaxVertices().z + (obj.getRadius() * 3.0f);
 	far = camZ + obj.getRadius() * 4.0f;
 	near = 0.2f;

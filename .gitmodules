@@ -1,0 +1,3 @@
+[submodule "includes/Matrix"]
+	path = includes/Matrix
+	url = https://github.com/NicolasMetais/Matrix

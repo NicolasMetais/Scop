@@ -1,6 +1,6 @@
 #pragma once
 #include <iostream>
-#include <ObjModel.hpp>
+#include <Mesh.hpp>
 #include <algorithm>
 #include <include/glad/glad.h>
 #include <Window.hpp>
@@ -10,8 +10,8 @@ class Renderer {
 		GLuint shaderProgram;
 	public:
 		Renderer() {};
-		void renderObj(Math::Matrix4f& model, ObjModel& obj);
-		void InitObj(ObjModel& obj);
-		void cleanup(ObjModel& obj);
+		void renderObj(Math::Matrix4f& mvp, Mesh& obj, Math::Matrix4f model);
+		void InitObj(Mesh& obj);
+		void cleanup(Mesh& obj);
 		GLuint getShader() { return shaderProgram; };
 };

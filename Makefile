@@ -7,7 +7,7 @@ SRCS =	srcs/main.cpp \
 		srcs/Window.cpp \
 		srcs/Camera.cpp \
 		srcs/Math.cpp \
-		srcs/ObjModel.cpp \
+		srcs/Mesh.cpp \
 		srcs/Renderer.cpp \
 		srcs/Transform.cpp \
 		srcs/Texture.cpp \

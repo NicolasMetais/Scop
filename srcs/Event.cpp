@@ -15,13 +15,14 @@ void event(SDL_Event& e, Transform& transform, Camera& camera, bool& run, bool& 
 		case SDL_MOUSEBUTTONDOWN:
 			if (e.button.button == SDL_BUTTON_LEFT) {
 				rotate = true;
-			lastX = e.button.x;
-			lastY = e.button.y;
-		}
+				lastX = e.button.x;
+				lastY = e.button.y;
+			}
 		break ;
 		case SDL_MOUSEBUTTONUP:
-			if (e.button.button == SDL_BUTTON_LEFT)
+			if (e.button.button == SDL_BUTTON_LEFT) {
 				rotate = false;
+			}
 		break ;
 		case SDL_MOUSEMOTION:
 			if (rotate) {
@@ -32,6 +33,8 @@ void event(SDL_Event& e, Transform& transform, Camera& camera, bool& run, bool& 
 				rotX += deltaX * SENSITIVITY;
 				rotY += deltaY * SENSITIVITY;
 				transform.setRotate(rotY, rotX, 0.0f);
+				int dummyX, DummyY;
+				SDL_GetRelativeMouseState(&dummyX, &DummyY);
 			}
 			else {
 				camera.mouseActions();

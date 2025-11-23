@@ -1,7 +1,7 @@
 #pragma once
 #include <iostream>
 #include <SDL2/SDL.h>
-#include <ObjModel.hpp>
+#include <Mesh.hpp>
 
 class Camera {
 	private:
@@ -31,7 +31,7 @@ class Camera {
 		Math::Matrix4f buildProjection();
 		Math::Matrix4f updateProjection(float w, float h);
 		Math::Matrix4f buildView();
-		void setFar(const ObjModel& obj);
+		void setFar(const Mesh& obj);
 		void moveForward();
 		void moveBackward();
 		void moveLeft();

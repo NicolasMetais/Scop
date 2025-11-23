@@ -17,9 +17,8 @@ struct MaterialMesh {
 	std::vector<float> vertices;
 };
 
-class ObjModel {
+class Mesh {
 	private:
-		// GLuint VAO, VBO;
 		std::vector<Math::Vec3> v;
 		std::vector<Math::Vec2> vt;
 		std::vector<Math::Vec3> vn;
@@ -27,7 +26,10 @@ class ObjModel {
 		std::vector<MaterialMesh> meshes;
 		Math::Vec3 minVert;
 		Math::Vec3 maxVert;
+		Math::Vec3 center;
+		std::vector<std::array<float, 3>> colors;
 		float radius;
+		float scaleFactor;
 		std::string currentMaterial;
 		struct FaceVertex {
 			int v;
@@ -41,8 +43,8 @@ class ObjModel {
 		std::unordered_map <std::string, Material> materials;
 		std::vector<Face> f;
 	public:
-		ObjModel () {};
-		void loadObj(const std::string& filename);
+		Mesh () {};
+		void loadObj(const std::string& fileName);
 		void loadMtlFile(const std::string& mtlname);
 		FaceVertex parseFaceElement(const std::string& part);
 
@@ -52,6 +54,18 @@ class ObjModel {
 		const Math::Vec3& getMinVertices() const { return minVert; };
 		const Math::Vec3& getMaxVertices() const { return maxVert; };
 		const float& getRadius() const { return radius; };
-		// GLuint getVAO()const { return VAO; };
-		// GLuint getVBO()const { return VBO; };
+		void parseObjFile(const std::string& fileName);
+		void CenterAndNormalize();
+		void BuildRenderMesh();
+		void parseVertexLine(std::istringstream& iss);
+		void parseTexCoordLine(std::istringstream& iss);
+		void parseNormalLine(std::istringstream& iss);
+		void parseFaceLine(std::istringstream& iss);
+		void parseMtlUseLine(std::istringstream& iss);
+		void parseMtlLibLine(std::istringstream& iss);
+		Math::Vec3 computeFaceNormal(const Math::Vec3& p0, const Math::Vec3& p1, const Math::Vec3& p2) const;
+		Math::Vec3 getVertexNormal(const FaceVertex& fv, const Math::Vec3& defaultNormal) const;
+		Math::Vec2 getVertexUV(const FaceVertex& fv, const Math::Vec3& pos) const;
+		void pushVertex(MaterialMesh& mesh, const Math::Vec3& pos, const std::array<float, 3>& color, const Math::Vec3& normal, const Math::Vec2& uv);
+		
 };
