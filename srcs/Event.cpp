@@ -26,10 +26,8 @@ void event(SDL_Event& e, Transform& transform, Camera& camera, bool& run, bool& 
 		break ;
 		case SDL_MOUSEMOTION:
 			if (rotate) {
-				int deltaX = e.motion.x - lastX;
-				int deltaY = e.motion.y - lastY;
-				lastX = e.motion.x;
-				lastY = e.motion.y;
+				int deltaX = e.motion.xrel;
+				int deltaY = e.motion.yrel;
 				rotX += deltaX * SENSITIVITY;
 				rotY += deltaY * SENSITIVITY;
 				transform.setRotate(rotY, rotX, 0.0f);

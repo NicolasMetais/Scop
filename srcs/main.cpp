@@ -25,7 +25,7 @@ int main(int ac, char **av) {
 		transform.setScale(1.0f);
 		transform.setPosition(0, 0, 0);
 		Vector<float> pos = {0.0f, 0.0f ,5.0f};
-		Vector<float> target = {0.0f, 0.0f ,1.0f};
+		Vector<float> target = {0.0f, 0.0f ,0.0f};
 		Vector<float> up = {0.0f, 1.0f ,0.0f};
 		Camera camera((float)WIDTH, (float)HEIGHT, pos, target, up);
 		Renderer render;

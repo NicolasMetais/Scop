@@ -27,6 +27,7 @@ Camera::Camera(float w, float h, Vector<float>& pos, Vector<float>& target,Vecto
 	this->aspect = w / h;
 	this->speed = 0.1f;
 	cameraInit();
+	cameraUpdate();
 };
 
 void Camera::cameraInit() {
@@ -107,9 +108,9 @@ Matrix<float> Camera::updateProjection(float w, float h) {
 
 
 Matrix<float> Camera::buildView() {
-	// N = target.normalize();
-	// U = cross_product(up, N).normalize();
-	// V = cross_product(N, U);
+	N = target * -1.0f;
+	U = cross_product(up, N).normalize();
+	V = cross_product(N, U);
 	return utils::view(cameraPos, U, V, N);
 };
 

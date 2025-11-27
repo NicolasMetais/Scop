@@ -219,7 +219,7 @@ void Mesh::CenterAndNormalize() {
 Vector<float> Mesh::computeFaceNormal(const Vector<float>& p0, const Vector<float>& p1, const Vector<float>& p2) const {
 	Vector<float> edge1 = p1 - p0;
 	Vector<float> edge2 = p2 - p0;
-	return cross_product(edge2, edge1).normalize();
+	return cross_product(edge1, edge2).normalize();
 }
 
 Vector<float> Mesh::getVertexNormal(const FaceVertex& fv, const Vector<float>& defaultNormal) const {
