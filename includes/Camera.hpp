@@ -1,17 +1,18 @@
 #pragma once
 #include <iostream>
+#include <Matrix/Matrix.hpp>
 #include <SDL2/SDL.h>
 #include <Mesh.hpp>
 
 class Camera {
 	private:
-		Math::Vec3 cameraPos;
-		Math::Vec3 target;
-		Math::Vec3 up;
-		Math::Vec3 U;
-		Math::Vec3 V;
-		Math::Vec3 N;
-		Math::Vec2 mousePos;
+		Vector<float> cameraPos;
+		Vector<float> target;
+		Vector<float> up;
+		Vector<float> U;
+		Vector<float> V;
+		Vector<float> N;
+		Vector<float> mousePos;
 		int winWidth;
 		int winHeight;
 		float aspect;
@@ -26,11 +27,11 @@ class Camera {
 		bool rightEdge;
 		bool lowerEdge;
 	public:
-		Camera(float w, float h, Math::Vec3 pos);
-		Camera(float w, float h, Math::Vec3& pos, Math::Vec3& target, Math::Vec3& up);
-		Math::Matrix4f buildProjection();
-		Math::Matrix4f updateProjection(float w, float h);
-		Math::Matrix4f buildView();
+		Camera(float w, float h, Vector<float> pos);
+		Camera(float w, float h, Vector<float>& pos, Vector<float>& target, Vector<float>& up);
+		Matrix<float> buildProjection();
+		Matrix<float> updateProjection(float w, float h);
+		Matrix<float> buildView();
 		void setFar(const Mesh& obj);
 		void moveForward();
 		void moveBackward();
@@ -43,5 +44,5 @@ class Camera {
 		void cameraInit();
 		void cameraUpdate();
 		void mouseActions();
-		Math::Vec2 getMousePos() const { return mousePos; };
+		Vector<float> getMousePos() const { return mousePos; };
 };

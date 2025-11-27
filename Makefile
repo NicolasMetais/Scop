@@ -6,12 +6,12 @@ LDFLAGS = $(shell sdl2-config --libs) -lGL -lz -fPIE
 SRCS =	srcs/main.cpp \
 		srcs/Window.cpp \
 		srcs/Camera.cpp \
-		srcs/Math.cpp \
 		srcs/Mesh.cpp \
 		srcs/Renderer.cpp \
 		srcs/Transform.cpp \
 		srcs/Texture.cpp \
 		srcs/Event.cpp \
+		srcs/utils.cpp \
 		srcs/Material.cpp \
 		loader/src/glad.c \
 

@@ -10,7 +10,7 @@ class Renderer {
 		GLuint shaderProgram;
 	public:
 		Renderer() {};
-		void renderObj(Math::Matrix4f& mvp, Mesh& obj, Math::Matrix4f model);
+		void renderObj(Matrix<float>& mvp, Mesh& obj, Matrix<float> model);
 		void InitObj(Mesh& obj);
 		void cleanup(Mesh& obj);
 		GLuint getShader() { return shaderProgram; };

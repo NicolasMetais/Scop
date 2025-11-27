@@ -1,4 +1,3 @@
-#include <Math.hpp>
 
 namespace Math {
 	Vec2 Vec2::normalize() const {
@@ -78,13 +77,6 @@ namespace Math {
 		Quaternion ret(x, y, z, w);
 		return ret;
 	}
-	float Todegres(float rad) {
-		return rad * (180.0f / M_PI);
-	};
-
-	float ToRad(float degres) {
-		return degres * (M_PI / 180.0f);
-	};
 
 
 	Math::Matrix4f::Matrix4f(float a00, float a01, float a02, float a03,
@@ -120,14 +112,6 @@ namespace Math {
 								0, 0, 0, 1);
 	};
 
-	Math::Matrix4f Math::Matrix4f::translation(const Math::Vec3& position) {
-		Math::Matrix4f translation = identity();
-		translation.M[0][3] = position.x;
-		translation.M[1][3] = position.y;
-		translation.M[2][3] = position.z;
-		return translation;
-	};
-
 	Math::Matrix4f Math::Matrix4f::scale(const Math::Vec3& scale) {
 		Math::Matrix4f scaling = identity();
 		scaling.M[0][0] = scale.x;
@@ -136,66 +120,4 @@ namespace Math {
 		scaling.M[3][3] = 1.0f;
 		return scaling;
 	};
-
-	Math::Matrix4f Math::Matrix4f::rotationX(float x) {
-		float c = cosf(x);
-		float s = sinf(x);
-		return Math::Matrix4f(
-			1,0,0,0,
-			0,c,-s,0,
-			0,s,c,0,
-			0,0,0,1
-		);
-	}
-
-	Math::Matrix4f Math::Matrix4f::rotationY(float y) {
-		float c = cosf(y);
-		float s = sinf(y);
-		return Math::Matrix4f(
-			c,0,s,0,
-			0,1,0,0,
-			-s,0,c,0,
-			0,0,0,1
-		);
-	};
-
-	Math::Matrix4f Math::Matrix4f::rotationZ(float z) {
-		float c = cosf(z);
-		float s = sinf(z);
-		return Math::Matrix4f(
-			c,-s,0,0,
-			s,c,0,0,
-			0,0,1,0,
-			0,0,0,1
-		);
-	};
-
-	Math::Matrix4f Math::Matrix4f::perspective(float fov, float aspect, float near, float far) {
-		float scale = 1.0f / tan(fov / 2.0f);
-		return Math::Matrix4f(
-			scale/aspect,0,0,0,
-			0,scale,0,0,
-			0,0,(far + near) / (near - far),(2 * far * near) / (near - far),
-			0,0,-1,0
-		);
-	};
-
-	Math::Matrix4f Math::Matrix4f::view(Math::Vec3 pos, Math::Vec3 U, Math::Vec3 V, Math::Vec3 N) {
-		Math::Matrix4f RotationCam(
-			U.x,U.y,U.z, 0.0f,
-			V.x,V.y,V.z, 0.0f,
-			N.x,N.y,N.z, 0.0f,
-			0.0f,0.0f,0.0f,1.0f
-		);
-		
-		Math::Matrix4f TranslationCam(
-			1.0f,0.0f,0.0f, -pos.x,
-			0.0f,1.0f,0.0f, -pos.y,
-			0.0f,0.0f,1.0f, -pos.z,
-			0.0f,0.0f,0.0f,1.0f
-		);
-
-		return RotationCam * TranslationCam;
-	};
-
 }

@@ -30,13 +30,13 @@ void Renderer::InitObj(Mesh& obj) {
 	shaderProgram = createShaderProgram(vertexShaderSource, fragmentShaderSource);
 };
 
-void Renderer::renderObj(Math::Matrix4f& mvp, Mesh& obj, Math::Matrix4f model) {
+void Renderer::renderObj(Matrix<float>& mvp, Mesh& obj, Matrix<float> model) {
 	glUseProgram(this->shaderProgram);
 
 	GLuint mvpLoc = glGetUniformLocation(this->shaderProgram, "MVP");
     GLuint modelLoc  = glGetUniformLocation(shaderProgram, "model");
-	glUniformMatrix4fv(mvpLoc, 1, GL_TRUE, mvp.data());
-	glUniformMatrix4fv(modelLoc, 1, GL_TRUE, model.data());
+	glUniformMatrix4fv(mvpLoc, 1, GL_TRUE, mvp.datal());
+	glUniformMatrix4fv(modelLoc, 1, GL_TRUE, model.datal());
 	GLuint kdLoc  = glGetUniformLocation(shaderProgram, "Kd");
     GLuint kaLoc  = glGetUniformLocation(shaderProgram, "Ka");
     GLuint ksLoc  = glGetUniformLocation(shaderProgram, "Ks");
@@ -51,12 +51,12 @@ void Renderer::renderObj(Math::Matrix4f& mvp, Mesh& obj, Math::Matrix4f model) {
 		if (mesh.mat)
 		{
 			glUniform1i(hasMtlLoc, 1);
-			Math::Vec3 Kd = mesh.mat->getKd();
-			Math::Vec3 Ka = mesh.mat->getKa();
-			Math::Vec3 Ks = mesh.mat->getKs();
-			glUniform3f(kdLoc, Kd.x, Kd.y, Kd.z);
-			glUniform3f(kaLoc, Ka.x, Ka.y, Ka.z);
-			glUniform3f(ksLoc, Ks.x, Ks.y, Ks.z);
+			Vector<float> Kd = mesh.mat->getKd();
+			Vector<float> Ka = mesh.mat->getKa();
+			Vector<float> Ks = mesh.mat->getKs();
+			glUniform3f(kdLoc, Kd.x(), Kd.y(), Kd.z());
+			glUniform3f(kaLoc, Ka.x(), Ka.y(), Ka.z());
+			glUniform3f(ksLoc, Ks.x(), Ks.y(), Ks.z());
 			glUniform1f(nsLoc, mesh.mat->getNs());
 			glUniform1f(niLoc, mesh.mat->getNi());
 			glUniform1f(dLoc, mesh.mat->getd());

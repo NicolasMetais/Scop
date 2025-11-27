@@ -1,10 +1,10 @@
 #pragma once
 #include <iostream>
-#include <Math.hpp>
 #include <fstream>
 #include <sstream>
 #include <vector>
 #include <algorithm>
+#include "Matrix/Matrix.hpp"
 #include <array>
 #include <include/glad/glad.h>
 #include <Material.hpp>
@@ -19,14 +19,14 @@ struct MaterialMesh {
 
 class Mesh {
 	private:
-		std::vector<Math::Vec3> v;
-		std::vector<Math::Vec2> vt;
-		std::vector<Math::Vec3> vn;
+		std::vector<Vector<float>> v;
+		std::vector<Vector<float>> vt;
+		std::vector<Vector<float>> vn;
 		std::vector<float> centeredVertices;
 		std::vector<MaterialMesh> meshes;
-		Math::Vec3 minVert;
-		Math::Vec3 maxVert;
-		Math::Vec3 center;
+		Vector<float> minVert;
+		Vector<float> maxVert;
+		Vector<float> center;
 		std::vector<std::array<float, 3>> colors;
 		float radius;
 		float scaleFactor;
@@ -49,10 +49,10 @@ class Mesh {
 		FaceVertex parseFaceElement(const std::string& part);
 
 		std::vector<MaterialMesh>& getMeshes() { return meshes; };
-		const std::vector<Math::Vec3>& getVertices() const { return v; };
+		const std::vector<Vector<float>>& getVertices() const { return v; };
 		const std::vector<float>& getCenteredVertices() const { return centeredVertices; };
-		const Math::Vec3& getMinVertices() const { return minVert; };
-		const Math::Vec3& getMaxVertices() const { return maxVert; };
+		const Vector<float>& getMinVertices() const { return minVert; };
+		const Vector<float>& getMaxVertices() const { return maxVert; };
 		const float& getRadius() const { return radius; };
 		void parseObjFile(const std::string& fileName);
 		void CenterAndNormalize();
@@ -63,9 +63,9 @@ class Mesh {
 		void parseFaceLine(std::istringstream& iss);
 		void parseMtlUseLine(std::istringstream& iss);
 		void parseMtlLibLine(std::istringstream& iss);
-		Math::Vec3 computeFaceNormal(const Math::Vec3& p0, const Math::Vec3& p1, const Math::Vec3& p2) const;
-		Math::Vec3 getVertexNormal(const FaceVertex& fv, const Math::Vec3& defaultNormal) const;
-		Math::Vec2 getVertexUV(const FaceVertex& fv, const Math::Vec3& pos) const;
-		void pushVertex(MaterialMesh& mesh, const Math::Vec3& pos, const std::array<float, 3>& color, const Math::Vec3& normal, const Math::Vec2& uv);
+		Vector<float> computeFaceNormal(const Vector<float>& p0, const Vector<float>& p1, const Vector<float>& p2) const;
+		Vector<float> getVertexNormal(const FaceVertex& fv, const Vector<float>& defaultNormal) const;
+		Vector<float> getVertexUV(const FaceVertex& fv, const Vector<float>& pos) const;
+		void pushVertex(MaterialMesh& mesh, const Vector<float>& pos, const std::array<float, 3>& color, const Vector<float>& normal, const Vector<float>& uv);
 		
 };

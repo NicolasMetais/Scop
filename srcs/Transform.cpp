@@ -1,10 +1,12 @@
 #include <Transform.hpp>
+#include <Matrix/Matrix.hpp>
+#include <utils.hpp>
 
-Math::Matrix4f Transform::getModelMatrix() const {
-	Math::Matrix4f T = Math::Matrix4f::translation(this->position);
-	Math::Matrix4f Rx = Math::Matrix4f::rotationX(this->rotation.x);
-	Math::Matrix4f Ry = Math::Matrix4f::rotationY(this->rotation.y);
-	Math::Matrix4f Rz = Math::Matrix4f::rotationZ(this->rotation.z);
-	Math::Matrix4f S = Math::Matrix4f::scale(this->scale);
+Matrix<float> Transform::getModelMatrix() {
+	Matrix<float> T = utils::translation(this->position);
+	Matrix<float> Rx = utils::rotationX(this->rotation.x());
+	Matrix<float> Ry = utils::rotationY(this->rotation.y());
+	Matrix<float> Rz = utils::rotationZ(this->rotation.z());
+	Matrix<float> S = identity<float>(4) * this->scale;
 	return T * (Rx * Ry * Rz) * S;
 };
