@@ -23,6 +23,7 @@ class Mesh {
 		std::vector<Vector<float>> vt;
 		std::vector<Vector<float>> vn;
 		std::vector<float> centeredVertices;
+		std::vector<Vector<float>> smoothNormals;
 		std::vector<MaterialMesh> meshes;
 		Vector<float> minVert;
 		Vector<float> maxVert;
@@ -47,7 +48,6 @@ class Mesh {
 		void loadObj(const std::string& fileName);
 		void loadMtlFile(const std::string& mtlname);
 		FaceVertex parseFaceElement(const std::string& part);
-
 		std::vector<MaterialMesh>& getMeshes() { return meshes; };
 		const std::vector<Vector<float>>& getVertices() const { return v; };
 		const std::vector<float>& getCenteredVertices() const { return centeredVertices; };
@@ -57,6 +57,7 @@ class Mesh {
 		void parseObjFile(const std::string& fileName);
 		void CenterAndNormalize();
 		void BuildRenderMesh();
+		void normalsHandler();
 		void parseVertexLine(std::istringstream& iss);
 		void parseTexCoordLine(std::istringstream& iss);
 		void parseNormalLine(std::istringstream& iss);
@@ -64,7 +65,7 @@ class Mesh {
 		void parseMtlUseLine(std::istringstream& iss);
 		void parseMtlLibLine(std::istringstream& iss);
 		Vector<float> computeFaceNormal(const Vector<float>& p0, const Vector<float>& p1, const Vector<float>& p2) const;
-		Vector<float> getVertexNormal(const FaceVertex& fv, const Vector<float>& defaultNormal) const;
+		Vector<float> getVertexNormal(const FaceVertex& fv) const;
 		Vector<float> getVertexUV(const FaceVertex& fv, const Vector<float>& pos) const;
 		void pushVertex(MaterialMesh& mesh, const Vector<float>& pos, const std::array<float, 3>& color, const Vector<float>& normal, const Vector<float>& uv);
 		

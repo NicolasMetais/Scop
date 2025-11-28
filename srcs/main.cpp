@@ -53,7 +53,7 @@ int main(int ac, char **av) {
 			}
 			else
 				texture.unbind();
-			render.renderObj(MVP, teapot, model);
+			render.renderObj(MVP, teapot, model, camera);
 			SDL_GL_SwapWindow(window.getWin());
 		}
 		render.cleanup(teapot);

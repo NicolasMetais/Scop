@@ -6,6 +6,8 @@ void Renderer::InitObj(Mesh& obj) {
     	throw std::runtime_error("Failed to initialize GLAD");
 	
 	glEnable(GL_DEPTH_TEST);
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 	for (auto& mesh : obj.getMeshes()) {
 		glGenVertexArrays(1, &mesh.VAO);
@@ -27,10 +29,13 @@ void Renderer::InitObj(Mesh& obj) {
 		mesh.vertexCount = mesh.vertices.size() / 11;
 	}
 
-	shaderProgram = createShaderProgram(vertexShaderSource, fragmentShaderSource);
+	std::string vertexShader("srcs/shader.vert");
+	std::string fragmentShader("srcs/shader.frag");
+
+	shaderProgram = createShaderProgram(vertexShader, fragmentShader);
 };
 
-void Renderer::renderObj(Matrix<float>& mvp, Mesh& obj, Matrix<float> model) {
+void Renderer::renderObj(Matrix<float>& mvp, Mesh& obj, Matrix<float> model, Camera& camera) {
 	glUseProgram(this->shaderProgram);
 
 	GLuint mvpLoc = glGetUniformLocation(this->shaderProgram, "MVP");
@@ -46,6 +51,13 @@ void Renderer::renderObj(Matrix<float>& mvp, Mesh& obj, Matrix<float> model) {
     GLuint illumLoc  = glGetUniformLocation(shaderProgram, "illum");
     GLuint hasMtlLoc  = glGetUniformLocation(shaderProgram, "hasMtl");
     GLuint lightDirLoc  = glGetUniformLocation(shaderProgram, "lightDir");
+    GLuint viewPosLoc  = glGetUniformLocation(shaderProgram, "viewPos");
+    GLuint lightColorLoc  = glGetUniformLocation(shaderProgram, "lightColor");
+
+	Vector<float> cam = camera.getCameraPos();
+	glUniform3f(viewPosLoc, cam.x(), cam.y(), cam.z()); //pos de la camera
+	glUniform3f(lightColorLoc, 1.0f, 1.0f, 0.0f); //couleur de la lumiere;
+	glUniform3f(lightDirLoc, -0.5f, -1.0f, -0.3f); //direction de la lumiere
 
 	for (auto& mesh : obj.getMeshes()) {
 		if (mesh.mat)
@@ -61,17 +73,12 @@ void Renderer::renderObj(Matrix<float>& mvp, Mesh& obj, Matrix<float> model) {
 			glUniform1f(niLoc, mesh.mat->getNi());
 			glUniform1f(dLoc, mesh.mat->getd());
 			glUniform1i(illumLoc, mesh.mat->getIllum());
-			glUniform1i(illumLoc, mesh.mat->getIllum());
 		}
 		else
 		{
 			glUniform1i(hasMtlLoc, 0);
 			glUniform3f(kaLoc, 0.1f, 0.1f, 0.1f);
-
 		}
-
-	
-		glUniform3f(lightDirLoc, -0.5f, -1.0f, -0.3f);
 		glBindVertexArray(mesh.VAO);
 		glDrawArrays(GL_TRIANGLES, 0, mesh.vertexCount);
 		glBindVertexArray(0);

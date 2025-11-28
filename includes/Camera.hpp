@@ -44,5 +44,7 @@ class Camera {
 		void cameraInit();
 		void cameraUpdate();
 		void mouseActions();
-		Vector<float> getMousePos() const { return mousePos; };
+		Vector<float> getMousePos() const { return this->mousePos; };
+		Vector<float> getCameraPos() const { return this->cameraPos; };
+
 };

@@ -47,7 +47,6 @@ std::string trim(const std::string& str) {
 
 void Mesh::loadMtlFile(const std::string& fileName) {
 	std::ifstream file;
-	std::cout << fileName << std::endl;
 	file.open("resources/" + fileName);
 	if (!file.is_open())
 		throw std::runtime_error("Error: cannot open mtl file");
@@ -111,7 +110,7 @@ void Mesh::loadMtlFile(const std::string& fileName) {
 		}
 	}
 	if (!current.getName().empty())
-		materials[current.getName()] = current;
+		this->materials[current.getName()] = current;
 };
 
 void	Mesh::parseVertexLine(std::istringstream& iss) {
@@ -222,20 +221,21 @@ Vector<float> Mesh::computeFaceNormal(const Vector<float>& p0, const Vector<floa
 	return cross_product(edge1, edge2).normalize();
 }
 
-Vector<float> Mesh::getVertexNormal(const FaceVertex& fv, const Vector<float>& defaultNormal) const {
+Vector<float> Mesh::getVertexNormal(const FaceVertex& fv) const {
 	if (fv.vn != -1)
 		return vn[fv.vn];
-	return defaultNormal;
+	return this->smoothNormals[fv.v];
 };
 
 Vector<float> Mesh::getVertexUV(const FaceVertex& fv, const Vector<float>& pos) const {
 	if (fv.vt != -1)
 		return vt[fv.vt];
-	return Vector<float>{
-		static_cast<float>((0.5f + atan2(pos.z(), pos.x()) / (2.0f * M_PI) * 20.0f)),
-		static_cast<float>((0.5f - asin(pos.y() / this->radius) / M_PI) * 20.0f)
-	};
-
+	Vector <float> p = (pos - this->center) * this->scaleFactor;
+	float u = 0.5f + atan2(pos.z(), pos.x()) / (2.0f * M_PI);
+	float v = 0.5f - asin(pos.y() / this->radius) / M_PI;
+	if (u < 0.0f) u += 1.0f;
+	if (u > 1.0f) u -= 1.0f;
+	return {u, v};
 };
 
 void Mesh::pushVertex(MaterialMesh& mesh, const Vector<float>& pos, const std::array<float, 3>& color, const Vector<float>& normal, const Vector<float>& uv) {
@@ -275,10 +275,10 @@ void Mesh::BuildRenderMesh() {
 			FaceVertex fv2 = face.fvertices[j + 1];
 
 			Vector<float> pos0 = v[fv0.v], pos1 = v[fv1.v], pos2 = v[fv2.v];
-			Vector<float> faceNormal = computeFaceNormal(pos0, pos1, pos2);
-			Vector<float> n0 = getVertexNormal(fv0, faceNormal);
-			Vector<float> n1 = getVertexNormal(fv1, faceNormal);
-			Vector<float> n2 = getVertexNormal(fv2, faceNormal);
+
+			Vector<float> n0 = getVertexNormal(fv0);
+			Vector<float> n1 = getVertexNormal(fv1);
+			Vector<float> n2 = getVertexNormal(fv2);
 		
 			Vector<float> uv0 = getVertexUV(fv0, pos0);
 			Vector<float> uv1 = getVertexUV(fv1, pos1);
@@ -295,8 +295,74 @@ void Mesh::BuildRenderMesh() {
 		meshes.push_back(std::move(pair.second));
 };
 
+static inline std::size_t hash_tuple(int a, int b, int c) {
+    return std::hash<long long>()(((long long)a << 42) ^ ((long long)b << 21) ^ (long long)c);
+}
+
+void Mesh::normalsHandler()
+{
+    bool hasNormals = true;
+    for (auto &face : this->f) {
+        for (auto &fv : face.fvertices) {
+            if (fv.vn == -1)
+                hasNormals = false;
+        }
+    }
+    if (hasNormals)
+        return ;
+
+    const float eps = 1e-6f;
+    std::unordered_map<std::size_t, std::vector<int>> posGroups;
+    posGroups.reserve(v.size()*2);
+
+    for (size_t i = 0; i < v.size(); ++i) {
+        int xi = static_cast<int>(std::floor(v[i].x() / eps));
+        int yi = static_cast<int>(std::floor(v[i].y() / eps));
+        int zi = static_cast<int>(std::floor(v[i].z() / eps));
+        std::size_t h = hash_tuple(xi, yi, zi);
+        posGroups[h].push_back((int)i);
+    }
+
+    this->smoothNormals.assign(v.size(), Vector<float>{0.0f, 0.0f, 0.0f});
+
+    for (auto &face : f) {
+        if (face.fvertices.size() < 3) continue;
+        for (size_t j = 1; j + 1 < face.fvertices.size(); ++j) {
+            FaceVertex fv0 = face.fvertices[0];
+            FaceVertex fv1 = face.fvertices[j];
+            FaceVertex fv2 = face.fvertices[j + 1];
+
+            Vector<float> p0 = v[fv0.v], p1 = v[fv1.v], p2 = v[fv2.v];
+            Vector<float> faceNormal = computeFaceNormal(p0, p1, p2);
+
+            auto addToGroup = [&](int idx) {
+                int xi = static_cast<int>(std::floor(v[idx].x() / eps));
+                int yi = static_cast<int>(std::floor(v[idx].y() / eps));
+                int zi = static_cast<int>(std::floor(v[idx].z() / eps));
+                std::size_t h = hash_tuple(xi, yi, zi);
+                auto &vec = posGroups[h];
+                for (int k : vec)
+                    smoothNormals[k] += faceNormal;
+            };
+
+            addToGroup(fv0.v);
+            addToGroup(fv1.v);
+            addToGroup(fv2.v);
+        }
+    }
+
+    for (auto &n : smoothNormals) {
+        float len2 = n.x()*n.x() + n.y()*n.y() + n.z()*n.z();
+        if (len2 > 1e-12f)
+            n = n.normalize();
+        else
+            n = Vector<float>{0.0f, 1.0f, 0.0f};
+    }
+}
+
 void Mesh::loadObj(const std::string& fileName) {
 	parseObjFile(fileName);
+	normalsHandler();
 	CenterAndNormalize();
 	BuildRenderMesh();
 }
