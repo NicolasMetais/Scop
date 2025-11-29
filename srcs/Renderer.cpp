@@ -62,10 +62,10 @@ void Renderer::renderObj(Matrix<float>& mvp, Mesh& obj, Matrix<float> model, Cam
 	for (auto& mesh : obj.getMeshes()) {
 		if (mesh.mat)
 		{
-			glUniform1i(hasMtlLoc, 1);
 			Vector<float> Kd = mesh.mat->getKd();
 			Vector<float> Ka = mesh.mat->getKa();
 			Vector<float> Ks = mesh.mat->getKs();
+			glUniform1i(hasMtlLoc, 1);
 			glUniform3f(kdLoc, Kd.x(), Kd.y(), Kd.z());
 			glUniform3f(kaLoc, Ka.x(), Ka.y(), Ka.z());
 			glUniform3f(ksLoc, Ks.x(), Ks.y(), Ks.z());
@@ -76,6 +76,13 @@ void Renderer::renderObj(Matrix<float>& mvp, Mesh& obj, Matrix<float> model, Cam
 		}
 		else
 		{
+			glUniform3f(kdLoc, 0.8, 0.8, 0.8);
+			glUniform3f(kaLoc, 0.1, 0.1, 0.1);
+			glUniform3f(ksLoc, 0.2, 0.2, 0.2);
+			glUniform1f(niLoc, 1.0);
+			glUniform1f(nsLoc, 32);
+			glUniform1i(illumLoc, 2);
+			glUniform1f(dLoc,1.0);
 			glUniform1i(hasMtlLoc, 0);
 			glUniform3f(kaLoc, 0.1f, 0.1f, 0.1f);
 		}

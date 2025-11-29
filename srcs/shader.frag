@@ -28,8 +28,7 @@ void main() {
         baseColor = texture(texture1, TexCoord).rgb;
     else if (!hasMtl)
     {
-        FragColor = vec4(vColor, 1.0);
-        return ;
+        baseColor = vColor;
     }
     else
         baseColor = Kd;
