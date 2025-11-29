@@ -23,7 +23,7 @@ Camera::Camera(float w, float h, Vector<float>& pos, Vector<float>& target,Vecto
 	this->target.normalize();
 	this->up = up;
 	this->up.normalize();
-	this->fov = 45.0f * (3.1415926f / 180.0f);
+	this->fov = 80.0f * (3.1415926f / 180.0f);
 	this->aspect = w / h;
 	this->speed = 0.1f;
 	cameraInit();
@@ -113,6 +113,14 @@ Matrix<float> Camera::buildView() {
 	V = cross_product(N, U);
 	return utils::view(cameraPos, U, V, N);
 };
+
+Matrix<float> Camera::buildViewNoTranslation() {
+    Matrix<float> view = buildView();
+    view[0][3] = 0.0f;
+    view[1][3] = 0.0f;
+    view[2][3] = 0.0f;
+    return view;
+}
 
 void Camera::moveUp() {
 	this->cameraPos.y() += this->speed;

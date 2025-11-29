@@ -24,40 +24,22 @@ void Texture::loadBMP(const std::string& path) {
 	if (bpp != 24 && bpp != 32)
 		throw std::runtime_error("only BMP 24 & 32 bits suppported");
 		
-	int bytesPerPixel = bpp / 8;
-	int imgSize = width * height * bytesPerPixel;
+	this->bpp = bpp / 8;
+	int imgSize = width * height * this->bpp;
 	
 	file.seekg(offset, std::ios::beg);
-	unsigned char *data = new unsigned char[imgSize];
-	file.read(reinterpret_cast<char*>(data), imgSize);
+	std::vector<unsigned char> tmpData(imgSize);
+	file.read(reinterpret_cast<char*>(tmpData.data()), imgSize);
 	for (int y = 0; y < (int)height / 2; ++y)
 	{
-		for (int x = 0; x < (int)width * bytesPerPixel; ++x)
-			std::swap(data[y * width * bytesPerPixel + x], 
-					data[(height - 1 - y) * width * bytesPerPixel + x]);
+		for (int x = 0; x < (int)width * this->bpp; ++x)
+			std::swap(tmpData[y * width * this->bpp + x], 
+					tmpData[(height - 1 - y) * width * this->bpp + x]);
 	}
 	file.close();
 	
-	glGenTextures(1, &this->id);
-
-	glBindTexture(GL_TEXTURE_2D, this->id);
-
-	//sert a repeter la texture plusieurs fois 
-	//si elle est trop petite par rapport au model
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-	//gestion de la texture si elle est scale en plus petit
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	//gestion de la texture si elle est scale en plus grand
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
-	GLenum format = (bytesPerPixel == 4) ? GL_RGBA : GL_RGB;
-	GLenum inputFormat = (bytesPerPixel == 4) ? GL_BGRA : GL_BGR;
-
-	glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, inputFormat, GL_UNSIGNED_BYTE, data);
-	glGenerateMipmap(GL_TEXTURE_2D);
-
-	delete[] data;
+	this->data = std::move(tmpData);
+	this->inputFormat = (this->bpp == 4) ? GL_BGRA : GL_BGR;
 };
 
 uint32_t readUint32FromFile(std::ifstream &file) {
@@ -194,7 +176,7 @@ void crcCheck(std::ifstream& file, char type[5], std::vector<unsigned char>& dat
 		throw std::runtime_error("CRC mismatch"); //check la validite de la data avec crc
 }
 
-void Texture::openGlTextureGen(std::vector<unsigned char> data, int bpp) {
+void Texture::openGl2DTextureGen() {
 	glGenTextures(1, &this->id);
 
 	glBindTexture(GL_TEXTURE_2D, this->id);
@@ -209,12 +191,10 @@ void Texture::openGlTextureGen(std::vector<unsigned char> data, int bpp) {
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
 	GLenum format = (bpp == 4) ? GL_RGBA : GL_RGB;
-	GLenum inputFormat = (bpp == 4) ? GL_RGBA : GL_RGB;
 
 	glTexImage2D(GL_TEXTURE_2D, 0, format,
-             width, height, 0, inputFormat, GL_UNSIGNED_BYTE, data.data());
+             width, height, 0, inputFormat, GL_UNSIGNED_BYTE, this->data.data());
 
-	// glTexImage2D(GL_TEXTURE_2D, 0, format, this->width, this->height, 0, inputFormat, GL_UNSIGNED_BYTE, data.data());
 	glGenerateMipmap(GL_TEXTURE_2D);
 }
 
@@ -243,21 +223,21 @@ void Texture::loadPNG(const std::string& path) {
 			throw std::runtime_error("Invalid chunk type");
 		if (i == 0 && std::strncmp(type, "IHDR", 4) != 0)
 			throw std::runtime_error("IHDR must be the first chunk");
-		std::vector<unsigned char> data(length);
-		file.read(reinterpret_cast<char*>(data.data()), length);
+		std::vector<unsigned char> TmpData(length);
+		file.read(reinterpret_cast<char*>(TmpData.data()), length);
 		if (file.gcount() != length)
 			throw std::runtime_error("invalid chunk");
 		if (std::strncmp(type, "IDAT", 4) == 0)
-			compressedData.insert(compressedData.end(), data.begin(), data.end());
+			compressedData.insert(compressedData.end(), TmpData.begin(), TmpData.end());
 		else if (std::strncmp(type, "IHDR", 4) == 0 && i == 0)
 		{
-			this->width = readUint32FromBuff(data.data());
-			this->height = readUint32FromBuff(data.data() + 4);
-			bitDepth = data[8];
-			colorType = data[9];
-			compressionMethod = data[10];
-			filterMethod = data[11];
-			interlaceMethod = data[12];
+			this->width = readUint32FromBuff(TmpData.data());
+			this->height = readUint32FromBuff(TmpData.data() + 4);
+			bitDepth = TmpData[8];
+			colorType = TmpData[9];
+			compressionMethod = TmpData[10];
+			filterMethod = TmpData[11];
+			interlaceMethod = TmpData[12];
 			if (compressionMethod != 0)
 				throw std::runtime_error("Unsupported compression method");
 			if (filterMethod != 0)
@@ -267,18 +247,18 @@ void Texture::loadPNG(const std::string& path) {
 		}
 		else if (std::strncmp(type, "IEND", 4) == 0)
 			break ;
-		crcCheck(file, type, data);
+		crcCheck(file, type, TmpData);
 		i++;
 	}
 	if (compressedData.empty())
    		throw std::runtime_error("No data found");
-	int bpp = (bitDepth * samplePerPixel(colorType) + 7) / 8;
-	size_t stride = 1 + width * bpp;
+	this->bpp = (bitDepth * samplePerPixel(colorType) + 7) / 8;
+	size_t stride = 1 + width * this->bpp;
 	size_t expectedSize = stride * height;
 	std::vector<unsigned char> decompressed = inflatePNG(compressedData, expectedSize);
 	std::vector<unsigned char> textures;
-	scanlineInterpreter(textures, decompressed, bpp);
-	std::vector<unsigned char> flipped;
-	openGlTextureGen(textures, bpp);
+	scanlineInterpreter(textures, decompressed, this->bpp);
+	this->data = std::move(textures);
+	this->inputFormat = (this->bpp == 4) ? GL_RGBA : GL_RGB;
 };
 

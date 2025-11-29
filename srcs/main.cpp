@@ -5,6 +5,7 @@
 #include <Renderer.hpp>
 #include <Camera.hpp>
 #include <Texture.hpp>
+#include <Skybox.hpp>
 #include <Event.hpp>
 #include <SDL2/SDL.h>
 
@@ -35,6 +36,8 @@ int main(int ac, char **av) {
 		bool triggerTexture = false;
 		Texture texture;
 		texture.loadTexture("resources/test.png");
+		texture.openGl2DTextureGen();
+		Skybox sky;
 		SDL_Event e;
 		while(run)
 		{
@@ -45,6 +48,9 @@ int main(int ac, char **av) {
 			Matrix<float> model = transform.getModelMatrix();
 			Matrix<float> view = camera.buildView();
 			Matrix<float> projection = camera.buildProjection();
+			glDepthFunc(GL_LEQUAL); 
+			sky.draw(camera.buildViewNoTranslation(), projection);
+			glDepthFunc(GL_LESS);
 			Matrix<float> MVP = projection * view * model;
 			glUseProgram(render.getShader());
 			glUniform1i(glGetUniformLocation(render.getShader(), "useTexture"), triggerTexture ? 1 : 0);

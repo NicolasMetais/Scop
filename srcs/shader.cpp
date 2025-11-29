@@ -1,7 +1,7 @@
 #include <Renderer.hpp>
 #include <iostream>
 
-std::string readShaderFile(std::string& path)
+inline std::string readShaderFile(std::string& path)
 {
     std::ifstream file(path);
     if (!file.is_open())
@@ -11,7 +11,7 @@ std::string readShaderFile(std::string& path)
     return buff.str();
 }
 
-GLuint compileShader(GLenum type, std::string& path)
+inline GLuint compileShader(GLenum type, std::string& path)
 {
     std::string code = readShaderFile(path);
     const char* src = code.c_str();
@@ -32,7 +32,7 @@ GLuint compileShader(GLenum type, std::string& path)
     return shader;
 }
 
-GLuint createShaderProgram(std::string& vertexSrc, std::string& fragmentSrc)
+inline GLuint createShaderProgram(std::string& vertexSrc, std::string& fragmentSrc)
 {
     GLuint vertexShader = compileShader(GL_VERTEX_SHADER, vertexSrc);
     GLuint fragmentShader = compileShader(GL_FRAGMENT_SHADER, fragmentSrc);
@@ -42,7 +42,6 @@ GLuint createShaderProgram(std::string& vertexSrc, std::string& fragmentSrc)
     glAttachShader(program, fragmentShader);
     glLinkProgram(program);
 
-    // Vérifier le link
     GLint success;
     glGetProgramiv(program, GL_LINK_STATUS, &success);
     if (!success)
@@ -52,7 +51,6 @@ GLuint createShaderProgram(std::string& vertexSrc, std::string& fragmentSrc)
         std::cerr << "Error in the linking program: " << infoLog << std::endl;
     }
 
-    // Supprimer shaders après link
     glDeleteShader(vertexShader);
     glDeleteShader(fragmentShader);
 

@@ -32,6 +32,7 @@ class Camera {
 		Matrix<float> buildProjection();
 		Matrix<float> updateProjection(float w, float h);
 		Matrix<float> buildView();
+		Matrix<float> buildViewNoTranslation();
 		void setFar(const Mesh& obj);
 		void moveForward();
 		void moveBackward();

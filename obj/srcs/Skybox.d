@@ -1,12 +1,12 @@
-obj/srcs/main.o: srcs/main.cpp includes/Mesh.hpp \
+obj/srcs/Skybox.o: srcs/Skybox.cpp includes/Skybox.hpp \
   includes/Matrix/Matrix.hpp includes/Matrix/Vector.hpp \
   includes/Matrix/Quaternion.hpp includes/Matrix/Quaternion.tpp \
   includes/Matrix/Vector.tpp includes/Matrix/Matrix.tpp \
-  loader/include/glad/glad.h includes/Material.hpp includes/Window.hpp \
-  includes/Transform.hpp includes/Renderer.hpp includes/Camera.hpp \
-  includes/Texture.hpp includes/Skybox.hpp includes/Event.hpp
+  includes/Mesh.hpp loader/include/glad/glad.h includes/Material.hpp \
+  includes/Window.hpp includes/Texture.hpp includes/Camera.hpp \
+  srcs/shader.cpp includes/Renderer.hpp
 
-includes/Mesh.hpp:
+includes/Skybox.hpp:
 
 includes/Matrix/Matrix.hpp:
 
@@ -20,20 +20,18 @@ includes/Matrix/Vector.tpp:
 
 includes/Matrix/Matrix.tpp:
 
+includes/Mesh.hpp:
+
 loader/include/glad/glad.h:
 
 includes/Material.hpp:
 
 includes/Window.hpp:
 
-includes/Transform.hpp:
-
-includes/Renderer.hpp:
+includes/Texture.hpp:
 
 includes/Camera.hpp:
 
-includes/Texture.hpp:
+srcs/shader.cpp:
 
-includes/Skybox.hpp:
-
-includes/Event.hpp:
+includes/Renderer.hpp:

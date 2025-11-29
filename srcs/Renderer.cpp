@@ -29,8 +29,8 @@ void Renderer::InitObj(Mesh& obj) {
 		mesh.vertexCount = mesh.vertices.size() / 11;
 	}
 
-	std::string vertexShader("srcs/shader.vert");
-	std::string fragmentShader("srcs/shader.frag");
+	std::string vertexShader("srcs/mesh.vs");
+	std::string fragmentShader("srcs/mesh.fs");
 
 	shaderProgram = createShaderProgram(vertexShader, fragmentShader);
 };
@@ -56,7 +56,7 @@ void Renderer::renderObj(Matrix<float>& mvp, Mesh& obj, Matrix<float> model, Cam
 
 	Vector<float> cam = camera.getCameraPos();
 	glUniform3f(viewPosLoc, cam.x(), cam.y(), cam.z()); //pos de la camera
-	glUniform3f(lightColorLoc, 1.0f, 1.0f, 0.0f); //couleur de la lumiere;
+	glUniform3f(lightColorLoc, 1.0f, 1.0f, 1.0f); //couleur de la lumiere;
 	glUniform3f(lightDirLoc, -0.5f, -1.0f, -0.3f); //direction de la lumiere
 
 	for (auto& mesh : obj.getMeshes()) {

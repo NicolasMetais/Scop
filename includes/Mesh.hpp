@@ -10,6 +10,7 @@
 #include <Material.hpp>
 #include <unordered_map>
 
+
 struct MaterialMesh {
 	Material *mat;
 	GLuint VAO, VBO;
