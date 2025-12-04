@@ -10,6 +10,7 @@ void Renderer::InitObj(Mesh& obj) {
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 	for (auto& mesh : obj.getMeshes()) {
+		mesh.vertexCount = mesh.vertices.size() / 11;
 		glGenVertexArrays(1, &mesh.VAO);
 		glGenBuffers(1, &mesh.VBO);
 	
@@ -26,7 +27,6 @@ void Renderer::InitObj(Mesh& obj) {
 		glVertexAttribPointer(3, 2, GL_FLOAT, GL_FALSE, 11 * sizeof(float), (void*)(9 * sizeof(float)));
 		glEnableVertexAttribArray(3);
 		glBindVertexArray(0);
-		mesh.vertexCount = mesh.vertices.size() / 11;
 	}
 
 	std::string vertexShader("srcs/mesh.vs");
@@ -56,7 +56,7 @@ void Renderer::renderObj(Matrix<float>& mvp, Mesh& obj, Matrix<float> model, Cam
 
 	Vector<float> cam = camera.getCameraPos();
 	glUniform3f(viewPosLoc, cam.x(), cam.y(), cam.z()); //pos de la camera
-	glUniform3f(lightColorLoc, 1.0f, 1.0f, 1.0f); //couleur de la lumiere;
+	glUniform3f(lightColorLoc, 1.0f, 0.0f, 1.0f); //couleur de la lumiere;
 	glUniform3f(lightDirLoc, -0.5f, -1.0f, -0.3f); //direction de la lumiere
 
 	for (auto& mesh : obj.getMeshes()) {
@@ -87,7 +87,15 @@ void Renderer::renderObj(Matrix<float>& mvp, Mesh& obj, Matrix<float> model, Cam
 			glUniform3f(kaLoc, 0.1f, 0.1f, 0.1f);
 		}
 		glBindVertexArray(mesh.VAO);
+		GLenum err = glGetError();
+        if (err != GL_NO_ERROR) {
+            std::cerr << "GL Error after glBindVertexArray: " << err << std::endl;
+        }
 		glDrawArrays(GL_TRIANGLES, 0, mesh.vertexCount);
+		err = glGetError();
+        if (err != GL_NO_ERROR) {
+            std::cerr << "GL Error after glDrawArrays: " << err << std::endl;
+        }
 		glBindVertexArray(0);
 	}
 };

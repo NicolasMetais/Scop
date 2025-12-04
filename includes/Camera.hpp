@@ -33,7 +33,6 @@ class Camera {
 		Matrix<float> updateProjection(float w, float h);
 		Matrix<float> buildView();
 		Matrix<float> buildViewNoTranslation();
-		void setFar(const Mesh& obj);
 		void moveForward();
 		void moveBackward();
 		void moveLeft();
@@ -47,5 +46,5 @@ class Camera {
 		void mouseActions();
 		Vector<float> getMousePos() const { return this->mousePos; };
 		Vector<float> getCameraPos() const { return this->cameraPos; };
-
+		const Vector<float>& getTarget() const { return this->target; };
 };

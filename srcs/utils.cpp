@@ -38,28 +38,48 @@ Matrix<float> utils::perspective(float fov, float aspect, float near, float far)
 		return Matrix<float>({
 			{scale/aspect,0,0,0},
 			{0,scale,0,0},
-			{0,0,(far + near) / (near - far),(2 * far * near) / (near - far)},
+			{0,0,(far + near) / (near - far), (2 * far * near) / (near - far)},
 			{0,0,-1,0}}
 		);
 };
 
-Matrix<float> utils::view(Vector<float> pos, Vector<float> U, Vector<float> V, Vector<float> N) {
-		Matrix<float> RotationCam({
-			{U.x(),U.y(),U.z(), 0.0f},
-			{V.x(),V.y(),V.z(), 0.0f},
-			{N.x(),N.y(),N.z(), 0.0f},
-			{0.0f,0.0f,0.0f,1.0f}}
-		);
-		
-		Matrix<float> TranslationCam({
-			{1.0f,0.0f,0.0f, -pos.x()},
-			{0.0f,1.0f,0.0f, -pos.y()},
-			{0.0f,0.0f,1.0f, -pos.z()},
-			{0.0f,0.0f,0.0f,1.0f}}
-		);
+// Matrix<float> utils::view(Vector<float> pos, Vector<float> center, Vector<float> up) {
+//     Vector<float> f = (center - pos).normalize();  // Direction de la caméra
+//     Vector<float> r = cross_product(f, up).normalize();  // Inversion ici !
+//     Vector<float> u = cross_product(r, f).normalize();  // Inversion ici aussi !
 
-		return RotationCam * TranslationCam;
-};
+//     Matrix<float> view({
+//         {r.x(), r.y(), r.z(), -r.dot(pos)},
+//         {u.x(), u.y(), u.z(), -u.dot(pos)},  // NÉGATIF ici
+//         {-f.x(), -f.y(), -f.z(), f.dot(pos)},
+//         {0.0f, 0.0f, 0.0f, 1.0f}
+//     });
+    
+//     return view;
+// }
+
+Matrix<float> utils::view(Vector<float> eye, Vector<float> center, Vector<float> up) {
+    Vector<float> f = (center - eye).normalize();
+    Vector<float> s = cross_product(f, up).normalize();
+    Vector<float> u = cross_product(s, f);
+    
+    Matrix<float> result = identity<float>(4);
+    
+    result[0][0] = s.x();
+    result[0][1] = s.y();
+    result[0][2] = s.z();
+    result[1][0] = u.x();
+    result[1][1] = u.y();
+    result[1][2] = u.z();
+    result[2][0] = -f.x();
+    result[2][1] = -f.y();
+    result[2][2] = -f.z();
+    result[0][3] = -s.dot(eye);
+    result[1][3] = -u.dot(eye);
+    result[2][3] = f.dot(eye);
+    
+    return result;
+}
 
 Matrix<float> utils::translation(const Vector<float>& position) {
 		Matrix<float> translation = identity<float>(4);

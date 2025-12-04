@@ -8,11 +8,16 @@ Camera::Camera(float w, float h, Vector<float> pos) : cameraPos(2), target(3), u
 	// U = Math::Vec3(1.0f, 0.0f, 0.0f);
 	// V = Math::Vec3(0.0f, 1.0f, 0.0f);
 	// N = Math::Vec3(0.0f, 0.0f, 1.0f);
-	this->target = Vector<float>{0.0f, 0.0f, 1.0f};
+	this->target = Vector<float>{0.0f, 0.0f, -1.0f};
 	this->up = Vector<float>{0.0f, 1.0f, 0.0f};
-	this->fov = 45.0f * (3.1415926f / 180.0f);
+	this->fov = 80.0f * (3.1415926f / 180.0f);
+	this->cameraPos = pos;
 	this->aspect = w / h;
 	this->speed = 0.1f;
+	this->near = 0.1f;
+	this->far = 100.0f;
+	cameraInit();
+	cameraUpdate();
 };
 
 Camera::Camera(float w, float h, Vector<float>& pos, Vector<float>& target,Vector<float>& up) : cameraPos(2), target(3), up(3), U(3), V(3), N(3), mousePos(2){
@@ -20,37 +25,42 @@ Camera::Camera(float w, float h, Vector<float>& pos, Vector<float>& target,Vecto
 	this->winHeight = h;
 	this->cameraPos = pos;
 	this->target = target;
-	this->target.normalize();
+	// this->target.normalize();
 	this->up = up;
 	this->up.normalize();
 	this->fov = 80.0f * (3.1415926f / 180.0f);
 	this->aspect = w / h;
 	this->speed = 0.1f;
+	this->near = 0.1f;
+	this->far = 100.0f;
 	cameraInit();
 	cameraUpdate();
 };
 
 void Camera::cameraInit() {
-	Vector<float> HTarget{target.x(), 0.0, target.z()};
-	HTarget.normalize();
-	float angle = utils::Todegres(asin(abs(HTarget.z())));
-	if (HTarget.z() >= 0.0f)
-	{
-		if (HTarget.x() >= 0.0f)
-		{
-			this->angleH = 360.0f - angle;
-		}
-		else
-			this->angleH = 180.0f + angle;
-	}
-	else
-	{
-		if (HTarget.x() >= 0.0f)
-			this->angleH = angle;
-		else
-			this->angleH = 180.0f - angle;
-	}
-	this->angleV = -utils::Todegres(asin(target.y()));
+	this->angleH = -90.0f;
+	this->angleV = 0.0f;
+
+	// Vector<float> HTarget{target.x(), 0.0, target.z()};
+	// HTarget.normalize();
+	// float angle = utils::Todegres(asin(abs(HTarget.z())));
+	// if (HTarget.z() >= 0.0f)
+	// {
+	// 	if (HTarget.x() >= 0.0f)
+	// 	{
+	// 		this->angleH = 360.0f - angle;
+	// 	}
+	// 	else
+	// 		this->angleH = 180.0f + angle;
+	// }
+	// else
+	// {
+	// 	if (HTarget.x() >= 0.0f)
+	// 		this->angleH = angle;
+	// 	else
+	// 		this->angleH = 180.0f - angle;
+	// }
+	// this->angleV = -utils::Todegres(asin(target.y()));
 	this->upperEdge = false;
 	this->leftEdge = false;
 	this->rightEdge = false;
@@ -63,39 +73,29 @@ void Camera::mouseActions() {
 	int DeltaX = 0.0f;
 	int DeltaY = 0.0f;
 	SDL_GetRelativeMouseState(&DeltaX, &DeltaY);
-	this->angleH += DeltaX * 0.1f;
-	this->angleV += DeltaY * 0.1f;
+	this->angleH -= DeltaX * 0.06f;
+	this->angleV -= DeltaY * 0.06f;
 	if (this->angleV > 89.0f) angleV = 89.0f;
 	if (this->angleV < -89.0f) angleV = -89.0f;
 	cameraUpdate();
 };
 
 void Camera::cameraUpdate() {
-	Vector<float> forward{0.0f, 0.0f, -1.0f};
-	Vector<float> Yaxis{0.0f, 1.0f, 0.0f};
-
-	Quaternion<float> qH(angleH, Yaxis);
-	forward = qH * forward;
-	Vector<float> right = cross_product(forward, Yaxis).normalize();
-
-    Quaternion<float> qV(angleV, right);
-    forward = qV * forward;
-    forward.normalize();
-
-    target = forward;
-
-	N = target * -1.0f;
-    N = N.normalize();
-    U = cross_product(Yaxis, N).normalize();
-    V = cross_product(N, U);
-};
-
-void Camera::setFar(const Mesh& obj) {
-	float camZ = obj.getMaxVertices().z() + (obj.getRadius() * 3.0f);
-	far = camZ + obj.getRadius() * 4.0f;
-	near = 0.2f;
-	far = 100.0f;
-};
+    Vector<float> Yaxis{0.0f, 1.0f, 0.0f};
+    
+    target.x() = cos(utils::ToRad(angleV)) * cos(utils::ToRad(angleH));
+    target.y() = sin(utils::ToRad(angleV));
+    target.z() = cos(utils::ToRad(angleV)) * sin(utils::ToRad(angleH));
+    target.normalize();
+    
+    U = cross_product(Yaxis, target);
+    U.normalize();
+    
+    V = cross_product(target, U);
+    V.normalize();
+    
+    N = -target;
+}
 
 Matrix<float> Camera::buildProjection() {
 	return utils::perspective(fov, aspect, near, far);
@@ -108,46 +108,44 @@ Matrix<float> Camera::updateProjection(float w, float h) {
 
 
 Matrix<float> Camera::buildView() {
-	N = target * -1.0f;
-	U = cross_product(up, N).normalize();
-	V = cross_product(N, U);
-	return utils::view(cameraPos, U, V, N);
+	Vector<float> center = cameraPos + target;
+	return utils::view(cameraPos, center, V);
 };
 
 Matrix<float> Camera::buildViewNoTranslation() {
     Matrix<float> view = buildView();
-    view[0][3] = 0.0f;
-    view[1][3] = 0.0f;
-    view[2][3] = 0.0f;
+    view[3][0] = 0.0f;
+    view[3][1] = 0.0f; //a inverser potentiellement ?
+    view[3][2] = 0.0f;
     return view;
 }
 
 void Camera::moveUp() {
-	this->cameraPos.y() += this->speed;
+	this->cameraPos += V * this->speed;
 }
 
 void Camera::moveDown() {
-	this->cameraPos.y() -= this->speed;
+	this->cameraPos -= V * this->speed;
 }
 
 void Camera::moveForward() {
-	this->cameraPos += (target * this->speed);
+    Vector<float> forwardXZ = Vector<float>{-N.x(), 0.0f, -N.z()}.normalize();
+    cameraPos += forwardXZ * speed;
 }
 
 void Camera::moveBackward() {
-	this->cameraPos -= (target * this->speed);
+    Vector<float> forwardXZ = Vector<float>{-N.x(), 0.0f, -N.z()}.normalize();
+    cameraPos -= forwardXZ * speed;
 }
 
 void Camera::moveLeft() {
-	Vector<float> Right = cross_product(target, up);
-	Right.normalize();
-	this->cameraPos -= Right * this->speed;
+    Vector<float> rightXZ = cross_product(Vector<float>{0.0f, 1.0f, 0.0f}, -N).normalize();
+    cameraPos -= rightXZ * speed;
 }
 
 void Camera::moveRight() {
-	Vector<float> Right = cross_product(target, up);
-	Right.normalize();
-	this->cameraPos += Right * this->speed;
+    Vector<float> rightXZ = cross_product(Vector<float>{0.0f, 1.0f, 0.0f}, -N).normalize();
+    cameraPos += rightXZ * speed;
 }
 
 void Camera::speedUp() {

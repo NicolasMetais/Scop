@@ -202,9 +202,9 @@ void Mesh::CenterAndNormalize() {
 	}
 
 	this->center = { 
-		(this->minVert.x() + this->maxVert.x())/2,
-		(this->minVert.y() + this->maxVert.y())/2,
-		(this->minVert.z() + this->maxVert.z())/2 
+		(this->minVert.x() + this->maxVert.x()) / 2.0f,
+		(this->minVert.y() + this->maxVert.y()) / 2.0f,
+		(this->minVert.z() + this->maxVert.z()) / 2.0f 
 	};
 
 	float radiusX = (this->maxVert.x() - this->minVert.x()) / 2.0f;
@@ -291,8 +291,9 @@ void Mesh::BuildRenderMesh() {
 		}
 	}
 	meshes.clear();
-	for (auto& pair : tempMesh)
+	for (auto& pair : tempMesh) {
 		meshes.push_back(std::move(pair.second));
+	}
 };
 
 static inline std::size_t hash_tuple(int a, int b, int c) {
@@ -361,8 +362,8 @@ void Mesh::normalsHandler()
 }
 
 void Mesh::loadObj(const std::string& fileName) {
-	parseObjFile(fileName);
-	normalsHandler();
-	CenterAndNormalize();
-	BuildRenderMesh();
+    parseObjFile(fileName);
+    normalsHandler();
+    CenterAndNormalize();
+    BuildRenderMesh();
 }

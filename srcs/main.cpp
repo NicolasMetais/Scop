@@ -12,6 +12,13 @@
 #define HEIGHT 1500
 #define WIDTH 1500
 
+void checkGLError(const char* where) {
+    GLenum err;
+    while ((err = glGetError()) != GL_NO_ERROR) {
+        std::cerr << "OpenGL error at " << where << ": " << err << std::endl;
+    }
+}
+
 int main(int ac, char **av) {
     if (ac != 2)
     {
@@ -25,33 +32,40 @@ int main(int ac, char **av) {
 		Transform transform;
 		transform.setScale(1.0f);
 		transform.setPosition(0, 0, 0);
-		Vector<float> pos = {0.0f, 0.0f ,5.0f};
+		Matrix<float> matrice = transform.getModelMatrix(); // ou imprime transform.getModelMatrix()
+		std::cout << "Model pos: " << matrice << std::endl;
+		Vector<float> pos = {0.0f, 0.0f ,10.0f};
 		Vector<float> target = {0.0f, 0.0f ,0.0f};
 		Vector<float> up = {0.0f, 1.0f ,0.0f};
 		Camera camera((float)WIDTH, (float)HEIGHT, pos, target, up);
 		Renderer render;
 		render.InitObj(teapot);
-		camera.setFar(teapot);
+		for (size_t i = 0; i < teapot.getMeshes().size(); ++i)
+   			std::cout << "Mesh " << i << " vertexCount = " << teapot.getMeshes()[i].vertexCount << std::endl;
 		bool run = true;
 		bool triggerTexture = false;
 		Texture texture;
 		texture.loadTexture("resources/test.png");
 		texture.openGl2DTextureGen();
+		glDisable(GL_CULL_FACE);
 		Skybox sky;
 		SDL_Event e;
-		while(run)
+		while (run)
 		{
 			while (SDL_PollEvent(&e))
 				event(e, transform, camera, run, triggerTexture);
-			glClearColor(0.5f,0.5f,0.5f,1.0f);
+			glClearColor(0.0f,0.0f,0.0f,1.0f);
 			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+			glEnable(GL_DEPTH_TEST);
+			glDepthFunc(GL_LESS);
+			glDepthMask(GL_TRUE);
+
 			Matrix<float> model = transform.getModelMatrix();
 			Matrix<float> view = camera.buildView();
 			Matrix<float> projection = camera.buildProjection();
-			glDepthFunc(GL_LEQUAL); 
-			sky.draw(camera.buildViewNoTranslation(), projection);
-			glDepthFunc(GL_LESS);
 			Matrix<float> MVP = projection * view * model;
+
 			glUseProgram(render.getShader());
 			glUniform1i(glGetUniformLocation(render.getShader(), "useTexture"), triggerTexture ? 1 : 0);
 			if(triggerTexture) {
@@ -59,7 +73,12 @@ int main(int ac, char **av) {
 			}
 			else
 				texture.unbind();
+
 			render.renderObj(MVP, teapot, model, camera);
+			checkGLError("after renderObj");
+
+			sky.draw(camera.buildViewNoTranslation(), projection);
+			checkGLError("after skybox");
 			SDL_GL_SwapWindow(window.getWin());
 		}
 		render.cleanup(teapot);

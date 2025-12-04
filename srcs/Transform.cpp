@@ -11,6 +11,5 @@ Matrix<float> Transform::getModelMatrix() {
 	S[0][0] *= this->scale;
 	S[1][1] *= this->scale;
 	S[2][2] *= this->scale;
-	// Matrix<float> S = identity<float>(4) * this->scale;
 	return T * (Rx * Ry * Rz) * S;
 };

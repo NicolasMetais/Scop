@@ -247,6 +247,8 @@ void Texture::loadPNG(const std::string& path) {
 		}
 		else if (std::strncmp(type, "IEND", 4) == 0)
 			break ;
+		// else
+		// 	std::cout << type << std::endl; //TYPE PRINTER
 		crcCheck(file, type, TmpData);
 		i++;
 	}

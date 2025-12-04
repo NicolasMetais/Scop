@@ -7,7 +7,7 @@ namespace utils {
 	Matrix<float> rotationY(float y);
 	Matrix<float> rotationZ(float z);
 	Matrix<float> perspective(float fov, float aspect, float near, float far);
-	Matrix<float> view(Vector<float> pos, Vector<float> U, Vector<float> V, Vector<float> N);
+	Matrix<float> view(Vector<float> pos, Vector<float> forward, Vector<float> up);
 	Matrix<float> translation(const Vector<float>& position);
 	float Todegres(float rad);
 	float ToRad(float rad);
