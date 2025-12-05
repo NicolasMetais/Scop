@@ -8,6 +8,7 @@
 #include <array>
 #include <include/glad/glad.h>
 #include <Material.hpp>
+#include <Texture.hpp>
 #include <unordered_map>
 
 

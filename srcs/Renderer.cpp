@@ -38,17 +38,22 @@ void Renderer::InitObj(Mesh& obj) {
 void Renderer::renderObj(Matrix<float>& mvp, Mesh& obj, Matrix<float> model, Camera& camera, float deltaTime) {
 	glUseProgram(this->shaderProgram);
 
-
 	GLuint mvpLoc = glGetUniformLocation(this->shaderProgram, "MVP");
     GLuint modelLoc  = glGetUniformLocation(shaderProgram, "model");
 	glUniformMatrix4fv(mvpLoc, 1, GL_TRUE, mvp.datal());
 	glUniformMatrix4fv(modelLoc, 1, GL_TRUE, model.datal());
 	GLuint kdLoc  = glGetUniformLocation(shaderProgram, "Kd");
+	GLuint map_KdLoc  = glGetUniformLocation(shaderProgram, "map_Kd");
     GLuint kaLoc  = glGetUniformLocation(shaderProgram, "Ka");
+	GLuint map_KaLoc  = glGetUniformLocation(shaderProgram, "map_Ka");
     GLuint ksLoc  = glGetUniformLocation(shaderProgram, "Ks");
+	GLuint map_KsLoc  = glGetUniformLocation(shaderProgram, "map_Ks");
     GLuint nsLoc  = glGetUniformLocation(shaderProgram, "Ns");
+	GLuint map_NsLoc  = glGetUniformLocation(shaderProgram, "map_Ns");
     GLuint niLoc  = glGetUniformLocation(shaderProgram, "Ni");
     GLuint dLoc  = glGetUniformLocation(shaderProgram, "d");
+	GLuint map_dLoc  = glGetUniformLocation(shaderProgram, "map_d");
+	GLuint map_Bump  = glGetUniformLocation(shaderProgram, "bump");
     GLuint illumLoc  = glGetUniformLocation(shaderProgram, "illum");
     GLuint hasMtlLoc  = glGetUniformLocation(shaderProgram, "hasMtl");
     GLuint lightDirLoc  = glGetUniformLocation(shaderProgram, "lightDir");
@@ -90,6 +95,12 @@ void Renderer::renderObj(Matrix<float>& mvp, Mesh& obj, Matrix<float> model, Cam
 			glUniform1f(niLoc, mesh.mat->getNi());
 			glUniform1f(dLoc, mesh.mat->getd());
 			glUniform1i(illumLoc, mesh.mat->getIllum());
+			glUniform1f(map_KaLoc, mesh.mat->getMapKa().has_value() ? 1 : 0);
+			glUniform1f(map_KdLoc, mesh.mat->getMapKd().has_value() ? 1 : 0);
+			glUniform1f(map_KsLoc, mesh.mat->getMapKs().has_value() ? 1 : 0);
+			glUniform1f(map_NsLoc, mesh.mat->getMapNs().has_value() ? 1 : 0);
+			glUniform1f(map_dLoc, mesh.mat->getMapd().has_value() ? 1 : 0);
+			glUniform1f(map_Bump, mesh.mat->getMapBump().has_value() ? 1 : 0);
 		}
 		else
 		{
@@ -102,6 +113,12 @@ void Renderer::renderObj(Matrix<float>& mvp, Mesh& obj, Matrix<float> model, Cam
 			glUniform1f(dLoc,1.0);
 			glUniform1i(hasMtlLoc, 0);
 			glUniform3f(kaLoc, 0.1f, 0.1f, 0.1f);
+			glUniform1f(map_KaLoc, 0);
+			glUniform1f(map_KdLoc, 0);
+			glUniform1f(map_KsLoc, 0);
+			glUniform1f(map_NsLoc, 0);
+			glUniform1f(map_dLoc, 0);
+			glUniform1f(map_Bump, 0);
 		}
 		glBindVertexArray(mesh.VAO);
 		GLenum err = glGetError();

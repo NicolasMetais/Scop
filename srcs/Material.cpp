@@ -16,14 +16,12 @@ Material::Material() {
 	Ni = 1.0f;
 	d = 1.0f;
 	illum = 2;
-	std::unordered_map <std::string, Texture> Textures;
 };
 
-void Material::setTexture(const std::string& path, const unsigned int& val) {
+void Material::setTexture(const std::string& path, Texture texture) {
 	auto it = textureMap.find(path);
-	if (it != textureMap.end())
-		*(it->second) = val;
-	else
+	if (it == textureMap.end())
 		throw std::runtime_error("Unknown texture key: " + path);
+	*(it->second) = std::move(texture);
 };
 

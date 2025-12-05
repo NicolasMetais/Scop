@@ -102,8 +102,10 @@ void Mesh::loadMtlFile(const std::string& fileName) {
 			std::string path;
 			ss >> path;
 			try {
-				unsigned int id = 0; //FONCTION DE LOAD TEXTURES A LA PLACE DU 0
-				current.setTexture(token, id);
+				Texture text;
+				text.loadTexture("resources/" + path);
+				current.setTexture(token, std::move(text));
+				text.openGl2DTextureGen();
 			} catch (std::runtime_error) {
 				return ;
 			}

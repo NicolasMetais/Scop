@@ -32,6 +32,7 @@ int main(int ac, char **av) {
 	bool trigger = false;
 	try {
 		Window window(WIDTH, HEIGHT);
+		Texture texture;
 		Mesh teapot;
 		teapot.loadObj(std::string(av[1]));
 		Transform transform;
@@ -46,7 +47,6 @@ int main(int ac, char **av) {
 		render.InitObj(teapot);
 		bool run = true;
 		bool triggerTexture = false;
-		Texture texture;
 		texture.loadTexture("resources/test.png");
 		texture.openGl2DTextureGen();
 		glDisable(GL_CULL_FACE);

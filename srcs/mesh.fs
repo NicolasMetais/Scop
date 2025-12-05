@@ -8,6 +8,8 @@ in vec3 vNormal;
 out vec4 FragColor;
 
 uniform sampler2D texture1;
+
+
 uniform bool useTexture;
 uniform bool hasMtl;
 uniform vec3 Kd; //Kouleur diffuse
