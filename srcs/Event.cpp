@@ -1,7 +1,29 @@
 #include <Event.hpp>
-#define SENSITIVITY 0.01f
 
-void event(SDL_Event& e, Transform& transform, Camera& camera, bool& run, bool& triggerTexture) {
+#define SENSITIVITY 0.01f
+#define KEY_DOWN 0x20
+#define KEY_UP 0x10
+#define KEY_W 0x8
+#define KEY_A 0x4
+#define KEY_S 0x2
+#define KEY_D 0x1
+
+void applyMovement(Camera& camera, uint8_t& moveFlags) {
+	if (moveFlags & KEY_W)
+		camera.moveForward();
+	if (moveFlags & KEY_S)
+		camera.moveBackward();
+	if (moveFlags & KEY_A)
+		camera.moveLeft();
+	if (moveFlags & KEY_D)
+		camera.moveRight();
+	if (moveFlags & KEY_UP)
+		camera.moveUp();
+	if (moveFlags & KEY_DOWN)
+		camera.moveDown();
+};
+
+void event(SDL_Event& e, Transform& transform, Camera& camera, bool& run, bool& triggerTexture, uint8_t& moveFlags, Renderer& render) {
 	static bool rotate = false;
 	static float rotX = 0.0f;
 	static float rotY = 0.0f;
@@ -62,26 +84,40 @@ void event(SDL_Event& e, Transform& transform, Camera& camera, bool& run, bool& 
 			}
 			break ;
 		case SDL_KEYDOWN:
-			if (e.key.keysym.sym == SDLK_t)
+			if (e.key.keysym.sym == SDLK_t && !render.isTransitionning())
 				triggerTexture = !triggerTexture;
 			if (e.key.keysym.sym == SDLK_ESCAPE)
 				run = false;
 			if (e.key.keysym.sym == SDLK_w)
-				camera.moveForward();
+				moveFlags |= KEY_W;
 			if (e.key.keysym.sym == SDLK_a)
-				camera.moveLeft();
+				moveFlags |= KEY_A;
 			if (e.key.keysym.sym == SDLK_s)
-				camera.moveBackward();
+				moveFlags |= KEY_S;
 			if (e.key.keysym.sym == SDLK_d)
-				camera.moveRight();
-			if (e.key.keysym.sym == SDLK_LSHIFT)
-				camera.moveUp();
+				moveFlags |= KEY_D;
+			if (e.key.keysym.sym == SDLK_LSHIFT || e.key.keysym.sym == SDLK_SPACE)
+				moveFlags |= KEY_UP;
 			if (e.key.keysym.sym == SDLK_LCTRL)
-				camera.moveDown();
+				moveFlags |= KEY_DOWN;
 			if (e.key.keysym.sym == SDLK_KP_PLUS || e.key.keysym.sym == SDLK_PLUS)
 				camera.speedUp();
 			if (e.key.keysym.sym == SDLK_KP_MINUS || e.key.keysym.sym == SDLK_MINUS)
 				camera.speedDown();
+			break ;
+		case SDL_KEYUP:
+			if (e.key.keysym.sym == SDLK_w)
+				moveFlags &= ~KEY_W;
+			if (e.key.keysym.sym == SDLK_a)
+				moveFlags &= ~KEY_A;
+			if (e.key.keysym.sym == SDLK_s)
+				moveFlags &= ~KEY_S;
+			if (e.key.keysym.sym == SDLK_d)
+				moveFlags &= ~KEY_D;
+			if (e.key.keysym.sym == SDLK_LSHIFT || e.key.keysym.sym == SDLK_SPACE)
+				moveFlags &= ~KEY_UP;
+			if (e.key.keysym.sym == SDLK_LCTRL)
+				moveFlags &= ~KEY_DOWN;
 			break ;
 	}
 }

@@ -35,8 +35,9 @@ void Renderer::InitObj(Mesh& obj) {
 	shaderProgram = createShaderProgram(vertexShader, fragmentShader);
 };
 
-void Renderer::renderObj(Matrix<float>& mvp, Mesh& obj, Matrix<float> model, Camera& camera) {
+void Renderer::renderObj(Matrix<float>& mvp, Mesh& obj, Matrix<float> model, Camera& camera, float deltaTime) {
 	glUseProgram(this->shaderProgram);
+
 
 	GLuint mvpLoc = glGetUniformLocation(this->shaderProgram, "MVP");
     GLuint modelLoc  = glGetUniformLocation(shaderProgram, "model");
@@ -53,12 +54,28 @@ void Renderer::renderObj(Matrix<float>& mvp, Mesh& obj, Matrix<float> model, Cam
     GLuint lightDirLoc  = glGetUniformLocation(shaderProgram, "lightDir");
     GLuint viewPosLoc  = glGetUniformLocation(shaderProgram, "viewPos");
     GLuint lightColorLoc  = glGetUniformLocation(shaderProgram, "lightColor");
-
+	GLuint TransitionLoc  = glGetUniformLocation(shaderProgram, "transition");
 	Vector<float> cam = camera.getCameraPos();
 	glUniform3f(viewPosLoc, cam.x(), cam.y(), cam.z()); //pos de la camera
 	glUniform3f(lightColorLoc, 1.0f, 0.0f, 1.0f); //couleur de la lumiere;
 	glUniform3f(lightDirLoc, -0.5f, -1.0f, -0.3f); //direction de la lumiere
-
+	
+	if (this->transitionning) {
+		if (this->transitionDir) {
+		this->transition += deltaTime / 2.0f;
+			if (this->transition >= 1.0f) {
+				this->transition = 1.0f;
+				this->transitionning = false;
+			}
+		} else {
+			this->transition -= deltaTime / 2.0f;
+			if (this->transition <= 0.0f) {
+				this->transition = 0.0f;
+				this->transitionning = false;
+			}
+		} 
+	}
+	glUniform1f(TransitionLoc, transition);
 	for (auto& mesh : obj.getMeshes()) {
 		if (mesh.mat)
 		{
@@ -88,14 +105,8 @@ void Renderer::renderObj(Matrix<float>& mvp, Mesh& obj, Matrix<float> model, Cam
 		}
 		glBindVertexArray(mesh.VAO);
 		GLenum err = glGetError();
-        if (err != GL_NO_ERROR) {
-            std::cerr << "GL Error after glBindVertexArray: " << err << std::endl;
-        }
 		glDrawArrays(GL_TRIANGLES, 0, mesh.vertexCount);
 		err = glGetError();
-        if (err != GL_NO_ERROR) {
-            std::cerr << "GL Error after glDrawArrays: " << err << std::endl;
-        }
 		glBindVertexArray(0);
 	}
 };

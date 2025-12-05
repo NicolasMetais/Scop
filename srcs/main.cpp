@@ -1,4 +1,5 @@
 #include <Mesh.hpp>
+#include <chrono>
 #include <Matrix/Matrix.hpp>
 #include <Window.hpp>
 #include <Transform.hpp>
@@ -12,19 +13,23 @@
 #define HEIGHT 1500
 #define WIDTH 1500
 
+
 void checkGLError(const char* where) {
     GLenum err;
     while ((err = glGetError()) != GL_NO_ERROR) {
         std::cerr << "OpenGL error at " << where << ": " << err << std::endl;
     }
 }
-
+using Clock = std::chrono::high_resolution_clock;
 int main(int ac, char **av) {
     if (ac != 2)
     {
 		std::cerr << "Error: Invalid format" << std::endl;
         return (1);
 	}
+	static uint8_t moveFlags = 0;
+	auto lastTime = Clock::now();
+	bool trigger = false;
 	try {
 		Window window(WIDTH, HEIGHT);
 		Mesh teapot;
@@ -33,15 +38,12 @@ int main(int ac, char **av) {
 		transform.setScale(1.0f);
 		transform.setPosition(0, 0, 0);
 		Matrix<float> matrice = transform.getModelMatrix(); // ou imprime transform.getModelMatrix()
-		std::cout << "Model pos: " << matrice << std::endl;
 		Vector<float> pos = {0.0f, 0.0f ,10.0f};
 		Vector<float> target = {0.0f, 0.0f ,0.0f};
 		Vector<float> up = {0.0f, 1.0f ,0.0f};
 		Camera camera((float)WIDTH, (float)HEIGHT, pos, target, up);
 		Renderer render;
 		render.InitObj(teapot);
-		for (size_t i = 0; i < teapot.getMeshes().size(); ++i)
-   			std::cout << "Mesh " << i << " vertexCount = " << teapot.getMeshes()[i].vertexCount << std::endl;
 		bool run = true;
 		bool triggerTexture = false;
 		Texture texture;
@@ -52,8 +54,12 @@ int main(int ac, char **av) {
 		SDL_Event e;
 		while (run)
 		{
+			auto currentTime = Clock::now();
+			std::chrono::duration<float> delta = currentTime - lastTime;
+			float deltaTime = delta.count();
+			lastTime = currentTime;
 			while (SDL_PollEvent(&e))
-				event(e, transform, camera, run, triggerTexture);
+				event(e, transform, camera, run, triggerTexture, moveFlags, render);
 			glClearColor(0.0f,0.0f,0.0f,1.0f);
 			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -67,19 +73,24 @@ int main(int ac, char **av) {
 			Matrix<float> MVP = projection * view * model;
 
 			glUseProgram(render.getShader());
-			glUniform1i(glGetUniformLocation(render.getShader(), "useTexture"), triggerTexture ? 1 : 0);
-			if(triggerTexture) {
-				texture.bind();
+
+			if (triggerTexture != trigger) {
+				if (triggerTexture)
+					render.startTransition();
+				else
+					render.startBackTransition();
+				trigger = triggerTexture;
 			}
+			if(triggerTexture || render.isTransitionning())
+				texture.bind();
 			else
 				texture.unbind();
-
-			render.renderObj(MVP, teapot, model, camera);
-			checkGLError("after renderObj");
-
+			glUniform1i(glGetUniformLocation(render.getShader(), "useTexture"), 
+            (triggerTexture || render.isTransitionning()) ? 1 : 0);
+			render.renderObj(MVP, teapot, model, camera, deltaTime);
 			sky.draw(camera.buildViewNoTranslation(), projection);
-			checkGLError("after skybox");
 			SDL_GL_SwapWindow(window.getWin());
+			applyMovement(camera, moveFlags);
 		}
 		render.cleanup(teapot);
 	}

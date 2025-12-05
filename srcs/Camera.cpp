@@ -73,7 +73,7 @@ void Camera::mouseActions() {
 	int DeltaX = 0.0f;
 	int DeltaY = 0.0f;
 	SDL_GetRelativeMouseState(&DeltaX, &DeltaY);
-	this->angleH -= DeltaX * 0.06f;
+	this->angleH += DeltaX * 0.06f;
 	this->angleV -= DeltaY * 0.06f;
 	if (this->angleV > 89.0f) angleV = 89.0f;
 	if (this->angleV < -89.0f) angleV = -89.0f;
@@ -121,11 +121,11 @@ Matrix<float> Camera::buildViewNoTranslation() {
 }
 
 void Camera::moveUp() {
-	this->cameraPos += V * this->speed;
+	this->cameraPos.y() += this->speed;
 }
 
 void Camera::moveDown() {
-	this->cameraPos -= V * this->speed;
+	this->cameraPos.y() -= this->speed;
 }
 
 void Camera::moveForward() {
@@ -140,16 +140,18 @@ void Camera::moveBackward() {
 
 void Camera::moveLeft() {
     Vector<float> rightXZ = cross_product(Vector<float>{0.0f, 1.0f, 0.0f}, -N).normalize();
-    cameraPos -= rightXZ * speed;
+    cameraPos += rightXZ * speed;
 }
 
 void Camera::moveRight() {
     Vector<float> rightXZ = cross_product(Vector<float>{0.0f, 1.0f, 0.0f}, -N).normalize();
-    cameraPos += rightXZ * speed;
+    cameraPos -= rightXZ * speed;
 }
 
 void Camera::speedUp() {
 	this->speed += 0.1f;
+	if (this->speed > 5.0f)
+        this->speed = 5.0f;
 	std::cout << "Speed changed to " << speed << std::endl;
 }
 

@@ -50,6 +50,9 @@
 		"cinttypes": "cpp",
 		"typeinfo": "cpp",
 		"cstring": "cpp",
-		"complex": "cpp"
+		"complex": "cpp",
+		"chrono": "cpp",
+		"ctime": "cpp",
+		"ratio": "cpp"
 	}
 }
