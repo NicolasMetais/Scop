@@ -104,10 +104,10 @@ void Mesh::loadMtlFile(const std::string& fileName) {
 			try {
 				Texture text;
 				text.loadTexture("resources/" + path);
-				current.setTexture(token, std::move(text));
 				text.openGl2DTextureGen();
+				current.setTexture(token, std::move(text));
 			} catch (std::runtime_error) {
-				return ;
+				std::cerr << "Warning texture not loaded" << path << std::endl;
 			}
 		}
 	}

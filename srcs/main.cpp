@@ -27,12 +27,14 @@ int main(int ac, char **av) {
 		std::cerr << "Error: Invalid format" << std::endl;
         return (1);
 	}
+	
 	static uint8_t moveFlags = 0;
 	auto lastTime = Clock::now();
 	bool trigger = false;
+
 	try {
 		Window window(WIDTH, HEIGHT);
-		Texture texture;
+		Renderer render;
 		Mesh teapot;
 		teapot.loadObj(std::string(av[1]));
 		Transform transform;
@@ -43,13 +45,9 @@ int main(int ac, char **av) {
 		Vector<float> target = {0.0f, 0.0f ,0.0f};
 		Vector<float> up = {0.0f, 1.0f ,0.0f};
 		Camera camera((float)WIDTH, (float)HEIGHT, pos, target, up);
-		Renderer render;
 		render.InitObj(teapot);
 		bool run = true;
 		bool triggerTexture = false;
-		texture.loadTexture("resources/test.png");
-		texture.openGl2DTextureGen();
-		glDisable(GL_CULL_FACE);
 		Skybox sky;
 		SDL_Event e;
 		while (run)
@@ -62,11 +60,10 @@ int main(int ac, char **av) {
 				event(e, transform, camera, run, triggerTexture, moveFlags, render);
 			glClearColor(0.0f,0.0f,0.0f,1.0f);
 			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
+			glEnable(GL_CULL_FACE);
 			glEnable(GL_DEPTH_TEST);
 			glDepthFunc(GL_LESS);
 			glDepthMask(GL_TRUE);
-
 			Matrix<float> model = transform.getModelMatrix();
 			Matrix<float> view = camera.buildView();
 			Matrix<float> projection = camera.buildProjection();
@@ -81,13 +78,9 @@ int main(int ac, char **av) {
 					render.startBackTransition();
 				trigger = triggerTexture;
 			}
-			if(triggerTexture || render.isTransitionning())
-				texture.bind();
-			else
-				texture.unbind();
-			glUniform1i(glGetUniformLocation(render.getShader(), "useTexture"), 
-            (triggerTexture || render.isTransitionning()) ? 1 : 0);
-			render.renderObj(MVP, teapot, model, camera, deltaTime);
+			glUniform1i(glGetUniformLocation(render.getShader(), "useTexture"),
+			(triggerTexture || render.isTransitionning()) ? 1 : 0);
+			render.renderObj(MVP, teapot, model, camera, deltaTime, triggerTexture);
 			sky.draw(camera.buildViewNoTranslation(), projection);
 			SDL_GL_SwapWindow(window.getWin());
 			applyMovement(camera, moveFlags);

@@ -7,8 +7,20 @@ in vec3 vNormal;
 
 out vec4 FragColor;
 
-uniform sampler2D texture1;
+uniform sampler2D scopTexture;
+uniform sampler2D map_Kd;
+uniform sampler2D map_Ka;
+uniform sampler2D map_Ks;
+uniform sampler2D map_Ns;
+uniform sampler2D map_d;
+uniform sampler2D bump;
 
+uniform int isMap_Kd;
+uniform int isMap_Ka;
+uniform int isMap_Ks;
+uniform int isMap_Ns;
+uniform int isMap_d;
+uniform int isBump;
 
 uniform bool useTexture;
 uniform bool hasMtl;
@@ -26,20 +38,42 @@ uniform vec3 viewPos;   //pos de la camera
 uniform vec3 lightColor;
 
 void main() {
-    vec3 baseColor = (!hasMtl) ? vColor : Kd;
-    vec3 textureColor = useTexture ? texture(texture1, TexCoord).rgb : baseColor;
 
+    //Couleur diffuse (Kd)
+    vec3 baseColor = (!hasMtl) ? vColor : Kd;
+    if (isMap_Kd > 0)
+        baseColor = texture(map_Kd, TexCoord).rgb;
+    vec3 textureColor = useTexture ? texture(scopTexture, TexCoord).rgb : baseColor;
     vec3 outputColor = mix(baseColor, textureColor, transition);
 
-    //setup normized vector
+    //Couleur Ambiante (Ka)
+    vec3 ambientColor = Ka;
+    if (isMap_Ka > 0)
+        ambientColor = texture(map_Ka, TexCoord).rgb;
+
+    //couleur speculaire (Ks)
+    vec3 specColor = Ks;
+    if (isMap_Ks > 0)
+        specColor = texture(map_Ks, TexCoord).rgb;
+    
+    //Shininess (Ns);
+    float shininess = Ns;
+    if (isMap_Ns > 0)
+        shininess = texture(map_Ns, TexCoord).r * 255.0;
+    
+    //Opacity
+    float alpha = d;
+    if (isMap_d > 0)
+        alpha = texture(map_d, TexCoord).r;
+    
+    //Vecteur de light
     vec3 norm = normalize(vNormal);
     vec3 light = normalize(-lightDir);
     vec3 viewDir = normalize(viewPos - FragPos);
 
-
     //Ambiant (Ka)
     float ambientStrength = 0.8;   // augmente => ombres plus claires
-    vec3 ambient = outputColor * Ka * ambientStrength;
+    vec3 ambient = outputColor * ambientColor * ambientStrength;
 
     //Diffuse (Kd)
     float diff = max(dot(norm, light), 0.0);
@@ -48,12 +82,12 @@ void main() {
 
     //Speculaire (Ks)
     vec3 reflectDir = reflect(-light, norm);
-    float spec = pow(max(dot(viewDir, reflectDir), 0.0), Ns);
-    vec3 specular = Ks * spec * lightColor;
+    float spec = pow(max(dot(viewDir, reflectDir), 0.0), shininess);
+    vec3 specular = specColor * spec * lightColor;
 
     vec3 finalColor = vec3(0.0, 0.0, 0.0);
     //Couleur
-    switch(illum){
+    switch(illum) {
         case 3:
             finalColor += specular;
         case 2:

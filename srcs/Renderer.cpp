@@ -1,9 +1,47 @@
 #include <Renderer.hpp>
 #include "shader.cpp"
 
-void Renderer::InitObj(Mesh& obj) {
+Renderer::Renderer() {
 	if (!gladLoadGLLoader((GLADloadproc)SDL_GL_GetProcAddress))
     	throw std::runtime_error("Failed to initialize GLAD");
+	std::string vertexShader("srcs/mesh.vs");
+	std::string fragmentShader("srcs/mesh.fs");
+
+	shaderProgram = createShaderProgram(vertexShader, fragmentShader);
+
+	loc.MVP = glGetUniformLocation(this->shaderProgram, "MVP");
+    loc.model = glGetUniformLocation(this->shaderProgram, "model");
+	loc.Kd = glGetUniformLocation(this->shaderProgram, "Kd");
+	loc.map_Kd = glGetUniformLocation(this->shaderProgram, "map_Kd");
+	loc.isMap_Kd = glGetUniformLocation(this->shaderProgram, "isMap_Kd");
+  	loc.Ka = glGetUniformLocation(this->shaderProgram, "Ka");
+	loc.map_Ka = glGetUniformLocation(this->shaderProgram, "map_Ka");
+	loc.isMap_Ka = glGetUniformLocation(this->shaderProgram, "isMap_Ka");
+    loc.Ks = glGetUniformLocation(this->shaderProgram, "Ks");
+	loc.map_Ks = glGetUniformLocation(this->shaderProgram, "map_Ks");
+	loc.isMap_Ks = glGetUniformLocation(this->shaderProgram, "isMap_Ks");
+    loc.Ns = glGetUniformLocation(this->shaderProgram, "Ns");
+	loc.map_Ns = glGetUniformLocation(this->shaderProgram, "map_Ns");
+	loc.isMap_Ns = glGetUniformLocation(this->shaderProgram, "isMap_Ns");
+    loc.Ni = glGetUniformLocation(this->shaderProgram, "Ni");
+    loc.d = glGetUniformLocation(this->shaderProgram, "d");
+	loc.map_d = glGetUniformLocation(this->shaderProgram, "map_d");
+	loc.isMap_d = glGetUniformLocation(this->shaderProgram, "isMap_d");
+	loc.bump = glGetUniformLocation(this->shaderProgram, "bump");
+	loc.isBump = glGetUniformLocation(this->shaderProgram, "isBump");
+    loc.illum = glGetUniformLocation(this->shaderProgram, "illum");
+    loc.hasMtl = glGetUniformLocation(this->shaderProgram, "hasMtl");
+    loc.lightDir = glGetUniformLocation(this->shaderProgram, "lightDir");
+    loc.viewPos = glGetUniformLocation(this->shaderProgram, "viewPos");
+    loc.lightColor = glGetUniformLocation(this->shaderProgram, "lightColor");
+	loc.transition = glGetUniformLocation(this->shaderProgram, "transition");
+	loc.scopTexture = glGetUniformLocation(this->shaderProgram, "scopTexture");
+	this->ScopTexture.loadTexture("resources/test.png");
+	this->ScopTexture.openGl2DTextureGen();
+};
+
+
+void Renderer::InitObj(Mesh& obj) {
 	
 	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_BLEND);
@@ -28,43 +66,40 @@ void Renderer::InitObj(Mesh& obj) {
 		glEnableVertexAttribArray(3);
 		glBindVertexArray(0);
 	}
-
-	std::string vertexShader("srcs/mesh.vs");
-	std::string fragmentShader("srcs/mesh.fs");
-
-	shaderProgram = createShaderProgram(vertexShader, fragmentShader);
 };
 
-void Renderer::renderObj(Matrix<float>& mvp, Mesh& obj, Matrix<float> model, Camera& camera, float deltaTime) {
+void Renderer::bindTexture(int& texSlot, GLuint loc, GLuint flagLoc, const std::optional<Texture>& texture)  {
+
+	if (texture.has_value()) {
+		glActiveTexture(GL_TEXTURE0 + texSlot);
+		glUniform1i(loc, texSlot);
+		glUniform1i(flagLoc, texSlot);
+		texture->bind();
+		texSlot++;
+	} else
+		glUniform1i(flagLoc, 0);
+}
+
+void Renderer::renderObj(Matrix<float>& mvp, Mesh& obj, Matrix<float> model, Camera& camera, float deltaTime, bool& triggerTexture) {
 	glUseProgram(this->shaderProgram);
 
-	GLuint mvpLoc = glGetUniformLocation(this->shaderProgram, "MVP");
-    GLuint modelLoc  = glGetUniformLocation(shaderProgram, "model");
-	glUniformMatrix4fv(mvpLoc, 1, GL_TRUE, mvp.datal());
-	glUniformMatrix4fv(modelLoc, 1, GL_TRUE, model.datal());
-	GLuint kdLoc  = glGetUniformLocation(shaderProgram, "Kd");
-	GLuint map_KdLoc  = glGetUniformLocation(shaderProgram, "map_Kd");
-    GLuint kaLoc  = glGetUniformLocation(shaderProgram, "Ka");
-	GLuint map_KaLoc  = glGetUniformLocation(shaderProgram, "map_Ka");
-    GLuint ksLoc  = glGetUniformLocation(shaderProgram, "Ks");
-	GLuint map_KsLoc  = glGetUniformLocation(shaderProgram, "map_Ks");
-    GLuint nsLoc  = glGetUniformLocation(shaderProgram, "Ns");
-	GLuint map_NsLoc  = glGetUniformLocation(shaderProgram, "map_Ns");
-    GLuint niLoc  = glGetUniformLocation(shaderProgram, "Ni");
-    GLuint dLoc  = glGetUniformLocation(shaderProgram, "d");
-	GLuint map_dLoc  = glGetUniformLocation(shaderProgram, "map_d");
-	GLuint map_Bump  = glGetUniformLocation(shaderProgram, "bump");
-    GLuint illumLoc  = glGetUniformLocation(shaderProgram, "illum");
-    GLuint hasMtlLoc  = glGetUniformLocation(shaderProgram, "hasMtl");
-    GLuint lightDirLoc  = glGetUniformLocation(shaderProgram, "lightDir");
-    GLuint viewPosLoc  = glGetUniformLocation(shaderProgram, "viewPos");
-    GLuint lightColorLoc  = glGetUniformLocation(shaderProgram, "lightColor");
-	GLuint TransitionLoc  = glGetUniformLocation(shaderProgram, "transition");
+	glUniformMatrix4fv(loc.MVP, 1, GL_TRUE, mvp.datal());
+	glUniformMatrix4fv(loc.model, 1, GL_TRUE, model.datal());
+
 	Vector<float> cam = camera.getCameraPos();
-	glUniform3f(viewPosLoc, cam.x(), cam.y(), cam.z()); //pos de la camera
-	glUniform3f(lightColorLoc, 1.0f, 0.0f, 1.0f); //couleur de la lumiere;
-	glUniform3f(lightDirLoc, -0.5f, -1.0f, -0.3f); //direction de la lumiere
-	
+	glUniform3f(loc.viewPos, cam.x(), cam.y(), cam.z()); //pos de la camera
+	glUniform3f(loc.lightColor, 1.0f, 0.0f, 1.0f); //couleur de la lumiere;
+	glUniform3f(loc.lightDir, -0.5f, -1.0f, -0.3f); //direction de la lumiere
+
+	int texSlot = 1;
+
+	if (triggerTexture || this->transitionning)
+	{
+		glActiveTexture(GL_TEXTURE0);
+		glUniform1i(loc.scopTexture, 0);
+		this->ScopTexture.bind();
+	} else
+		glUniform1i(loc.scopTexture, -1);
 	if (this->transitionning) {
 		if (this->transitionDir) {
 		this->transition += deltaTime / 2.0f;
@@ -80,45 +115,44 @@ void Renderer::renderObj(Matrix<float>& mvp, Mesh& obj, Matrix<float> model, Cam
 			}
 		} 
 	}
-	glUniform1f(TransitionLoc, transition);
+	glUniform1f(loc.transition, transition);
 	for (auto& mesh : obj.getMeshes()) {
 		if (mesh.mat)
 		{
 			Vector<float> Kd = mesh.mat->getKd();
 			Vector<float> Ka = mesh.mat->getKa();
 			Vector<float> Ks = mesh.mat->getKs();
-			glUniform1i(hasMtlLoc, 1);
-			glUniform3f(kdLoc, Kd.x(), Kd.y(), Kd.z());
-			glUniform3f(kaLoc, Ka.x(), Ka.y(), Ka.z());
-			glUniform3f(ksLoc, Ks.x(), Ks.y(), Ks.z());
-			glUniform1f(nsLoc, mesh.mat->getNs());
-			glUniform1f(niLoc, mesh.mat->getNi());
-			glUniform1f(dLoc, mesh.mat->getd());
-			glUniform1i(illumLoc, mesh.mat->getIllum());
-			glUniform1f(map_KaLoc, mesh.mat->getMapKa().has_value() ? 1 : 0);
-			glUniform1f(map_KdLoc, mesh.mat->getMapKd().has_value() ? 1 : 0);
-			glUniform1f(map_KsLoc, mesh.mat->getMapKs().has_value() ? 1 : 0);
-			glUniform1f(map_NsLoc, mesh.mat->getMapNs().has_value() ? 1 : 0);
-			glUniform1f(map_dLoc, mesh.mat->getMapd().has_value() ? 1 : 0);
-			glUniform1f(map_Bump, mesh.mat->getMapBump().has_value() ? 1 : 0);
+			glUniform1i(loc.hasMtl, 1);
+			glUniform3f(loc.Kd, Kd.x(), Kd.y(), Kd.z());
+			glUniform3f(loc.Ka, Ka.x(), Ka.y(), Ka.z());
+			glUniform3f(loc.Ks, Ks.x(), Ks.y(), Ks.z());
+			glUniform1f(loc.Ns, mesh.mat->getNs());
+			glUniform1f(loc.Ni, mesh.mat->getNi());
+			glUniform1f(loc.d, mesh.mat->getd());
+			glUniform1i(loc.illum, mesh.mat->getIllum());
+			bindTexture(texSlot, loc.map_Ka, loc.isMap_Ka, mesh.mat->getMapKa());
+			bindTexture(texSlot, loc.map_Kd, loc.isMap_Kd, mesh.mat->getMapKd());
+			bindTexture(texSlot, loc.map_Ks, loc.isMap_Ks, mesh.mat->getMapKs());
+			bindTexture(texSlot, loc.map_Ns, loc.isMap_Ns, mesh.mat->getMapNs());
+			bindTexture(texSlot, loc.map_d, loc.isMap_d, mesh.mat->getMapd());
+			bindTexture(texSlot, loc.bump, loc.isBump, mesh.mat->getMapBump());
 		}
 		else
 		{
-			glUniform3f(kdLoc, 0.8, 0.8, 0.8);
-			glUniform3f(kaLoc, 0.1, 0.1, 0.1);
-			glUniform3f(ksLoc, 0.2, 0.2, 0.2);
-			glUniform1f(niLoc, 1.0);
-			glUniform1f(nsLoc, 32);
-			glUniform1i(illumLoc, 2);
-			glUniform1f(dLoc,1.0);
-			glUniform1i(hasMtlLoc, 0);
-			glUniform3f(kaLoc, 0.1f, 0.1f, 0.1f);
-			glUniform1f(map_KaLoc, 0);
-			glUniform1f(map_KdLoc, 0);
-			glUniform1f(map_KsLoc, 0);
-			glUniform1f(map_NsLoc, 0);
-			glUniform1f(map_dLoc, 0);
-			glUniform1f(map_Bump, 0);
+			glUniform3f(loc.Kd, 0.8, 0.8, 0.8);
+			glUniform3f(loc.Ka, 0.1, 0.1, 0.1);
+			glUniform3f(loc.Ks, 0.2, 0.2, 0.2);
+			glUniform1f(loc.Ni, 1.0);
+			glUniform1f(loc.Ns, 32);
+			glUniform1i(loc.illum, 2);
+			glUniform1f(loc.d,1.0);
+			glUniform1i(loc.hasMtl, 0);
+			glUniform1i(loc.map_Ka, 0);
+			glUniform1i(loc.map_Kd, 0);
+			glUniform1i(loc.map_Ks, 0);
+			glUniform1i(loc.map_Ns, 0);
+			glUniform1i(loc.map_d, 0);
+			glUniform1i(loc.bump, 0);
 		}
 		glBindVertexArray(mesh.VAO);
 		GLenum err = glGetError();
