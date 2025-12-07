@@ -13,3 +13,18 @@ Matrix<float> Transform::getModelMatrix() {
 	S[2][2] *= this->scale;
 	return T * (Rx * Ry * Rz) * S;
 };
+
+void Transform::move(const Vector<float>& delta) {
+	position.x() += delta.x();
+	position.y() += delta.y();
+	position.y() += delta.y();
+};
+
+void Transform::addRotation(float x, float y, float z) {
+	rotation.x() += x;
+	rotation.y() += y;
+	rotation.z() += z;
+
+};
+
+

@@ -14,6 +14,7 @@ class Window {
 		SDL_Window* win;
 		SDL_GLContext context;
 	public:
+		Window();
 		Window(int w, int h);
 		SDL_Window* getWin();
 		~Window();

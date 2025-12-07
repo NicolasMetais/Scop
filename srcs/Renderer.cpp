@@ -36,6 +36,7 @@ Renderer::Renderer() {
     loc.lightColor = glGetUniformLocation(this->shaderProgram, "lightColor");
 	loc.transition = glGetUniformLocation(this->shaderProgram, "transition");
 	loc.scopTexture = glGetUniformLocation(this->shaderProgram, "scopTexture");
+	loc.useTexture = glGetUniformLocation(this->shaderProgram, "useTexture");
 	this->ScopTexture.loadTexture("resources/test.png");
 	this->ScopTexture.openGl2DTextureGen();
 };
@@ -68,6 +69,14 @@ void Renderer::InitObj(Mesh& obj) {
 	}
 };
 
+ void Renderer::toggleTexture() { 
+	if (isTransitionning())
+		return ;
+	useTexture = !useTexture; 
+	transitionTarget = useTexture ? 1.0f : 0.0f; 
+};
+
+
 void Renderer::bindTexture(int& texSlot, GLuint loc, GLuint flagLoc, const std::optional<Texture>& texture)  {
 
 	if (texture.has_value()) {
@@ -80,7 +89,7 @@ void Renderer::bindTexture(int& texSlot, GLuint loc, GLuint flagLoc, const std::
 		glUniform1i(flagLoc, 0);
 }
 
-void Renderer::renderObj(Matrix<float>& mvp, Mesh& obj, Matrix<float> model, Camera& camera, float deltaTime, bool& triggerTexture) {
+void Renderer::renderObj(Matrix<float>& mvp, Mesh& obj, Matrix<float> model, Camera& camera, float deltaTime) {
 	glUseProgram(this->shaderProgram);
 
 	glUniformMatrix4fv(loc.MVP, 1, GL_TRUE, mvp.datal());
@@ -91,29 +100,21 @@ void Renderer::renderObj(Matrix<float>& mvp, Mesh& obj, Matrix<float> model, Cam
 	glUniform3f(loc.lightColor, 1.0f, 0.0f, 1.0f); //couleur de la lumiere;
 	glUniform3f(loc.lightDir, -0.5f, -1.0f, -0.3f); //direction de la lumiere
 
+	glActiveTexture(GL_TEXTURE0);
+	glUniform1i(loc.scopTexture, 0);
+	ScopTexture.bind();
+	glUniform1i(loc.useTexture, (useTexture || isTransitionning()) ? 1 : 0);
+
 	int texSlot = 1;
 
-	if (triggerTexture || this->transitionning)
-	{
-		glActiveTexture(GL_TEXTURE0);
-		glUniform1i(loc.scopTexture, 0);
-		this->ScopTexture.bind();
-	} else
-		glUniform1i(loc.scopTexture, -1);
-	if (this->transitionning) {
-		if (this->transitionDir) {
-		this->transition += deltaTime / 2.0f;
-			if (this->transition >= 1.0f) {
-				this->transition = 1.0f;
-				this->transitionning = false;
-			}
-		} else {
-			this->transition -= deltaTime / 2.0f;
-			if (this->transition <= 0.0f) {
-				this->transition = 0.0f;
-				this->transitionning = false;
-			}
-		} 
+	if (transition < transitionTarget) {
+		transition += deltaTime * transitionSpeed;
+		if (transition > transitionTarget)
+			transition = transitionTarget;
+	} else if (transition > transitionTarget) {
+		transition -= deltaTime * transitionSpeed;
+		if (transition < transitionTarget)
+			transition = transitionTarget;
 	}
 	glUniform1f(loc.transition, transition);
 	for (auto& mesh : obj.getMeshes()) {

@@ -1,9 +1,13 @@
 NAME = Scop
 CC = c++
 CFLAGS = -Wall -Wextra -Werror -Iincludes -Iloader -std=c++17 -g3 $(shell sdl2-config --cflags) -fPIE 
-LDFLAGS = $(shell sdl2-config --libs) -lGL -lpng -lz -fPIE
+LDFLAGS = $(shell sdl2-config --libs) -lGL -lz -fPIE
 
 SRCS =	srcs/main.cpp \
+		srcs/App.cpp \
+		srcs/Timer.cpp \
+		srcs/Mouse.cpp \
+		srcs/Keyboard.cpp \
 		srcs/Window.cpp \
 		srcs/Camera.cpp \
 		srcs/Mesh.cpp \
@@ -32,7 +36,7 @@ $(OBJ_DIR)/%.o: %.cpp
 
 $(OBJ_DIR)/%.o: %.c
 	mkdir -p $(dir $@)
-	cc -Wall -Wextra -Werror -Iincludes -Iloader -g3 -lpng -MMD -MP -c $< -o  $@ -fPIC
+	cc -Wall -Wextra -Werror -Iincludes -Iloader -g3 -MMD -MP -c $< -o  $@ -fPIC
 
 -include $(OBJS:.o=.d)
 

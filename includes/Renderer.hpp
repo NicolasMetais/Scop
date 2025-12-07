@@ -41,6 +41,7 @@ struct ShaderLocations {
     GLint isBump;
 
 	GLint scopTexture;
+    GLint useTexture;
 
     // Light
     GLint lightDir;
@@ -54,28 +55,24 @@ struct ShaderLocations {
 class Renderer {
 	private:
 		GLuint shaderProgram;
-		bool transitionning = false;
-		bool transitionDir = true;
+		// bool transitionning = false;
+		// bool transitionDir = true;
+        bool useTexture = false;
 		float transition = 0.0f;
+		float transitionTarget = 0.0f;
+		float transitionSpeed = 0.5f;
+
+
 		ShaderLocations loc;
 		Texture ScopTexture;
 	public:
 		Renderer();
-		void renderObj(Matrix<float>& mvp, Mesh& obj, Matrix<float> model, Camera& camera, float deltaTime, bool& triggerTexture);
+		void renderObj(Matrix<float>& mvp, Mesh& obj, Matrix<float> model, Camera& camera, float deltaTime);
 		void InitObj(Mesh& obj);
 		void cleanup(Mesh& obj);
 		GLuint getShader() { return shaderProgram; };
+		ShaderLocations& getLocs() { return loc; };
 		void bindTexture(int& texSlot, GLuint loc, GLuint , const std::optional<Texture>& texture);
-		bool isTransitionning() const { return transitionning; };
-		void startTransition() 
-		{
-			this->transition = 0.0f;
-			transitionning = true; 
-			transitionDir = true;
-		};
-		void startBackTransition() { 
-			this->transition = 1.0f;
-			transitionning = true; 
-			transitionDir = false;
-		};
+		bool isTransitionning() const { return std::abs(transition - transitionTarget) > 0.001f; };
+        void toggleTexture();
 };

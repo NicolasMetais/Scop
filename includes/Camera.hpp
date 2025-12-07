@@ -28,17 +28,17 @@ class Camera {
 		bool lowerEdge;
 	public:
 		Camera(float w, float h, Vector<float> pos);
-		Camera(float w, float h, Vector<float>& pos, Vector<float>& target, Vector<float>& up);
+		Camera(float w, float h, Vector<float> pos, Vector<float> target, Vector<float> up);
 		Matrix<float> buildProjection();
 		Matrix<float> updateProjection(float w, float h);
 		Matrix<float> buildView();
 		Matrix<float> buildViewNoTranslation();
-		void moveForward();
-		void moveBackward();
-		void moveLeft();
-		void moveRight();
-		void moveUp();
-		void moveDown();
+		void moveForward(float deltaTime);
+		void moveBackward(float deltaTime);
+		void moveLeft(float deltaTime);
+		void moveRight(float deltaTime);
+		void moveUp(float deltaTime);
+		void moveDown(float deltaTime);
 		void speedUp();
 		void speedDown();
 		void cameraInit();

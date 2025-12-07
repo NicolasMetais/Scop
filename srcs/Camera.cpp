@@ -5,32 +5,28 @@
 
 Camera::Camera(float w, float h, Vector<float> pos) : cameraPos(2), target(3), up(3), U(3), V(3), N(3), mousePos(2) {
 	this->cameraPos = pos;
-	// U = Math::Vec3(1.0f, 0.0f, 0.0f);
-	// V = Math::Vec3(0.0f, 1.0f, 0.0f);
-	// N = Math::Vec3(0.0f, 0.0f, 1.0f);
 	this->target = Vector<float>{0.0f, 0.0f, -1.0f};
 	this->up = Vector<float>{0.0f, 1.0f, 0.0f};
 	this->fov = 80.0f * (3.1415926f / 180.0f);
 	this->cameraPos = pos;
 	this->aspect = w / h;
-	this->speed = 0.1f;
+	this->speed = 3.0f;
 	this->near = 0.1f;
 	this->far = 100.0f;
 	cameraInit();
 	cameraUpdate();
 };
 
-Camera::Camera(float w, float h, Vector<float>& pos, Vector<float>& target,Vector<float>& up) : cameraPos(2), target(3), up(3), U(3), V(3), N(3), mousePos(2){
+Camera::Camera(float w, float h, Vector<float> pos, Vector<float> target,Vector<float> up) : cameraPos(2), target(3), up(3), U(3), V(3), N(3), mousePos(2){
 	this->winWidth = w;
 	this->winHeight = h;
 	this->cameraPos = pos;
 	this->target = target;
-	// this->target.normalize();
 	this->up = up;
 	this->up.normalize();
 	this->fov = 80.0f * (3.1415926f / 180.0f);
 	this->aspect = w / h;
-	this->speed = 0.1f;
+	this->speed = 3.0f;
 	this->near = 0.1f;
 	this->far = 100.0f;
 	cameraInit();
@@ -40,27 +36,6 @@ Camera::Camera(float w, float h, Vector<float>& pos, Vector<float>& target,Vecto
 void Camera::cameraInit() {
 	this->angleH = -90.0f;
 	this->angleV = 0.0f;
-
-	// Vector<float> HTarget{target.x(), 0.0, target.z()};
-	// HTarget.normalize();
-	// float angle = utils::Todegres(asin(abs(HTarget.z())));
-	// if (HTarget.z() >= 0.0f)
-	// {
-	// 	if (HTarget.x() >= 0.0f)
-	// 	{
-	// 		this->angleH = 360.0f - angle;
-	// 	}
-	// 	else
-	// 		this->angleH = 180.0f + angle;
-	// }
-	// else
-	// {
-	// 	if (HTarget.x() >= 0.0f)
-	// 		this->angleH = angle;
-	// 	else
-	// 		this->angleH = 180.0f - angle;
-	// }
-	// this->angleV = -utils::Todegres(asin(target.y()));
 	this->upperEdge = false;
 	this->leftEdge = false;
 	this->rightEdge = false;
@@ -115,37 +90,37 @@ Matrix<float> Camera::buildView() {
 Matrix<float> Camera::buildViewNoTranslation() {
     Matrix<float> view = buildView();
     view[3][0] = 0.0f;
-    view[3][1] = 0.0f; //a inverser potentiellement ?
+    view[3][1] = 0.0f;
     view[3][2] = 0.0f;
     return view;
 }
 
-void Camera::moveUp() {
-	this->cameraPos.y() += this->speed;
+void Camera::moveUp(float deltaTime) {
+	this->cameraPos.y() += this->speed * deltaTime;
 }
 
-void Camera::moveDown() {
-	this->cameraPos.y() -= this->speed;
+void Camera::moveDown(float deltaTime) {
+	this->cameraPos.y() -= this->speed * deltaTime;
 }
 
-void Camera::moveForward() {
+void Camera::moveForward(float deltaTime) {
     Vector<float> forwardXZ = Vector<float>{-N.x(), 0.0f, -N.z()}.normalize();
-    cameraPos += forwardXZ * speed;
+    cameraPos += forwardXZ * speed * deltaTime;
 }
 
-void Camera::moveBackward() {
+void Camera::moveBackward(float deltaTime) {
     Vector<float> forwardXZ = Vector<float>{-N.x(), 0.0f, -N.z()}.normalize();
-    cameraPos -= forwardXZ * speed;
+    cameraPos -= forwardXZ * speed * deltaTime;
 }
 
-void Camera::moveLeft() {
+void Camera::moveLeft(float deltaTime) {
     Vector<float> rightXZ = cross_product(Vector<float>{0.0f, 1.0f, 0.0f}, -N).normalize();
-    cameraPos += rightXZ * speed;
+    cameraPos += rightXZ * speed * deltaTime;
 }
 
-void Camera::moveRight() {
+void Camera::moveRight(float deltaTime) {
     Vector<float> rightXZ = cross_product(Vector<float>{0.0f, 1.0f, 0.0f}, -N).normalize();
-    cameraPos -= rightXZ * speed;
+    cameraPos -= rightXZ * speed * deltaTime;
 }
 
 void Camera::speedUp() {

@@ -1,79 +1,10 @@
 #include <Event.hpp>
 
-#define SENSITIVITY 0.01f
-#define KEY_DOWN 0x20
-#define KEY_UP 0x10
-#define KEY_W 0x8
-#define KEY_A 0x4
-#define KEY_S 0x2
-#define KEY_D 0x1
-
-void applyMovement(Camera& camera, uint8_t& moveFlags) {
-	if (moveFlags & KEY_W)
-		camera.moveForward();
-	if (moveFlags & KEY_S)
-		camera.moveBackward();
-	if (moveFlags & KEY_A)
-		camera.moveLeft();
-	if (moveFlags & KEY_D)
-		camera.moveRight();
-	if (moveFlags & KEY_UP)
-		camera.moveUp();
-	if (moveFlags & KEY_DOWN)
-		camera.moveDown();
-};
-
-void event(SDL_Event& e, Transform& transform, Camera& camera, bool& run, bool& triggerTexture, uint8_t& moveFlags, Renderer& render) {
-	static bool rotate = false;
-	static float rotX = 0.0f;
-	static float rotY = 0.0f;
-	static float scale = transform.getScale();
-	static int lastX = 0, lastY = 0;
-	static int y;
+void event(SDL_Event& e, Camera& camera, bool& run) {
 	switch (e.type) {
 		case SDL_QUIT:
 			run = false;
 		break;
-		case SDL_MOUSEBUTTONDOWN:
-			if (e.button.button == SDL_BUTTON_LEFT) {
-				rotate = true;
-				lastX = e.button.x;
-				lastY = e.button.y;
-			}
-		break ;
-		case SDL_MOUSEBUTTONUP:
-			if (e.button.button == SDL_BUTTON_LEFT) {
-				rotate = false;
-			}
-		break ;
-		case SDL_MOUSEMOTION:
-			if (rotate) {
-				int deltaX = e.motion.xrel;
-				int deltaY = e.motion.yrel;
-				rotX += deltaX * SENSITIVITY;
-				rotY += deltaY * SENSITIVITY;
-				transform.setRotate(rotY, rotX, 0.0f);
-				int dummyX, DummyY;
-				SDL_GetRelativeMouseState(&dummyX, &DummyY);
-			}
-			else {
-				camera.mouseActions();
-			}
-		break ;
-		case SDL_MOUSEWHEEL:
-			y = e.wheel.y;
-			if (e.wheel.direction == SDL_MOUSEWHEEL_FLIPPED)
-				y = -y;
-			if (y > 0)
-				scale += 0.1f;
-			if (y < 0 && scale > 0.1f)
-				scale -= 0.1f;
-			if (scale < 0.1f)
-				scale = 0.1f;
-			if (scale > 8.0f)
-				scale = 8.0f;
-			transform.setScale(scale);
-		break ;
 		case SDL_WINDOWEVENT:
 			if (e.window.event == SDL_WINDOWEVENT_RESIZED)
 			{
@@ -82,42 +13,6 @@ void event(SDL_Event& e, Transform& transform, Camera& camera, bool& run, bool& 
 				glViewport(0, 0, w, h);
 				camera.updateProjection(w, h);
 			}
-			break ;
-		case SDL_KEYDOWN:
-			if (e.key.keysym.sym == SDLK_t && !render.isTransitionning())
-				triggerTexture = !triggerTexture;
-			if (e.key.keysym.sym == SDLK_ESCAPE)
-				run = false;
-			if (e.key.keysym.sym == SDLK_w)
-				moveFlags |= KEY_W;
-			if (e.key.keysym.sym == SDLK_a)
-				moveFlags |= KEY_A;
-			if (e.key.keysym.sym == SDLK_s)
-				moveFlags |= KEY_S;
-			if (e.key.keysym.sym == SDLK_d)
-				moveFlags |= KEY_D;
-			if (e.key.keysym.sym == SDLK_LSHIFT || e.key.keysym.sym == SDLK_SPACE)
-				moveFlags |= KEY_UP;
-			if (e.key.keysym.sym == SDLK_LCTRL)
-				moveFlags |= KEY_DOWN;
-			if (e.key.keysym.sym == SDLK_KP_PLUS || e.key.keysym.sym == SDLK_PLUS)
-				camera.speedUp();
-			if (e.key.keysym.sym == SDLK_KP_MINUS || e.key.keysym.sym == SDLK_MINUS)
-				camera.speedDown();
-			break ;
-		case SDL_KEYUP:
-			if (e.key.keysym.sym == SDLK_w)
-				moveFlags &= ~KEY_W;
-			if (e.key.keysym.sym == SDLK_a)
-				moveFlags &= ~KEY_A;
-			if (e.key.keysym.sym == SDLK_s)
-				moveFlags &= ~KEY_S;
-			if (e.key.keysym.sym == SDLK_d)
-				moveFlags &= ~KEY_D;
-			if (e.key.keysym.sym == SDLK_LSHIFT || e.key.keysym.sym == SDLK_SPACE)
-				moveFlags &= ~KEY_UP;
-			if (e.key.keysym.sym == SDLK_LCTRL)
-				moveFlags &= ~KEY_DOWN;
 			break ;
 	}
 }
