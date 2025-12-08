@@ -17,7 +17,7 @@ Matrix<float> Transform::getModelMatrix() {
 void Transform::move(const Vector<float>& delta) {
 	position.x() += delta.x();
 	position.y() += delta.y();
-	position.y() += delta.y();
+	position.z() += delta.z();
 };
 
 void Transform::addRotation(float x, float y, float z) {

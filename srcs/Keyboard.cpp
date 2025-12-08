@@ -1,5 +1,8 @@
 #include <Keyboard.hpp>
 
+#define MOVE_MESH_FORWARD 0x400
+#define MOVE_MESH_BACKWARD 0x800
+
 #define MOVE_MESH_UP 0x200
 #define MOVE_MESH_DOWN 0x100
 #define MOVE_MESH_LEFT 0x80
@@ -67,6 +70,12 @@ switch (e.type) {
 			case SDLK_RIGHT:
 				pressed ? moveFlags |= MOVE_MESH_RIGHT : moveFlags &= ~MOVE_MESH_RIGHT;
 			break ;
+			case SDLK_PAGEUP:
+				pressed ? moveFlags |= MOVE_MESH_FORWARD : moveFlags &= ~MOVE_MESH_FORWARD;
+			break ;
+			case SDLK_PAGEDOWN:
+				pressed ? moveFlags |= MOVE_MESH_BACKWARD : moveFlags &= ~MOVE_MESH_BACKWARD;
+			break ;
 			case SDLK_f:
 				if (pressed)
 					std::cout << "FPS: " << fps << std::endl;
@@ -100,4 +109,7 @@ void Keyboard::applyMovement(Camera& camera, Transform& transform, float deltaTi
 	if (moveFlags & MOVE_MESH_DOWN) transform.move(Vector<float>{0.0f,-3.0f * deltaTime, 0.0f});
 	if (moveFlags & MOVE_MESH_LEFT) transform.move(Vector<float>{-3.0f * deltaTime,0.0f, 0.0f});
 	if (moveFlags & MOVE_MESH_RIGHT) transform.move(Vector<float>{3.0f* deltaTime,0.0f, 0.0f});
+	if (moveFlags & MOVE_MESH_FORWARD) transform.move(Vector<float>{0.0f,0.0f, -3.0f * deltaTime});
+	if (moveFlags & MOVE_MESH_BACKWARD) transform.move(Vector<float>{0.0f,0.0f, 3.0f * deltaTime});
+
 };
