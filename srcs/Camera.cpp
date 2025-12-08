@@ -3,7 +3,7 @@
 #include <Matrix/Matrix.hpp>
 #include <utils.hpp>
 
-Camera::Camera(float w, float h, Vector<float> pos) : cameraPos(2), target(3), up(3), U(3), V(3), N(3), mousePos(2) {
+Camera::Camera(float w, float h, Vector<float> pos) : cameraPos(3), target(3), up(3), U(3), V(3), N(3), mousePos(2) {
 	this->cameraPos = pos;
 	this->target = Vector<float>{0.0f, 0.0f, -1.0f};
 	this->up = Vector<float>{0.0f, 1.0f, 0.0f};
@@ -84,7 +84,7 @@ Matrix<float> Camera::updateProjection(float w, float h) {
 
 Matrix<float> Camera::buildView() {
 	Vector<float> center = cameraPos + target;
-	return utils::view(cameraPos, center, V);
+	return utils::view(cameraPos, center, up);
 };
 
 Matrix<float> Camera::buildViewNoTranslation() {

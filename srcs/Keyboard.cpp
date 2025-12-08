@@ -13,7 +13,7 @@
 #define KEY_D 0x1
 
 
-void Keyboard::processEvent(SDL_Event& e, bool& running, Renderer& render, Camera& cam, float& fps) {
+void Keyboard::processEvent(SDL_Event& e, bool& running, Renderer& render, Camera& cam, float& fps, bool& lockCam) {
 switch (e.type) {
 	case SDL_KEYDOWN:
 	case SDL_KEYUP:
@@ -70,9 +70,23 @@ switch (e.type) {
 			case SDLK_f:
 				if (pressed)
 					std::cout << "FPS: " << fps << std::endl;
+				break ;
+			case SDLK_q:
+				if (pressed)
+				{
+					if (lockCam) {
+						SDL_SetRelativeMouseMode(SDL_FALSE);
+						SDL_ShowCursor(SDL_ENABLE);
+					}
+					else {
+						SDL_SetRelativeMouseMode(SDL_TRUE);
+						SDL_ShowCursor(SDL_DISABLE);
+					}
+					lockCam = !lockCam;
+				}
 			break ;
 		}
-}
+	}
 };
 
 void Keyboard::applyMovement(Camera& camera, Transform& transform, float deltaTime) {
@@ -82,8 +96,8 @@ void Keyboard::applyMovement(Camera& camera, Transform& transform, float deltaTi
 	if (moveFlags & KEY_D) camera.moveRight(deltaTime);
 	if (moveFlags & KEY_UP) camera.moveUp(deltaTime);
 	if (moveFlags & KEY_DOWN) camera.moveDown(deltaTime);
-	if (moveFlags & MOVE_MESH_UP) transform.move(Vector<float>{0.0f,0.1f, 0.0f});
-	if (moveFlags & MOVE_MESH_DOWN) transform.move(Vector<float>{0.0f,-0.1f, 0.0f});
-	if (moveFlags & MOVE_MESH_LEFT) transform.move(Vector<float>{-0.1f,0.0f, 0.0f});
-	if (moveFlags & MOVE_MESH_RIGHT) transform.move(Vector<float>{0.1f,0.0f, 0.0f});
+	if (moveFlags & MOVE_MESH_UP) transform.move(Vector<float>{0.0f,3.0f * deltaTime, 0.0f});
+	if (moveFlags & MOVE_MESH_DOWN) transform.move(Vector<float>{0.0f,-3.0f * deltaTime, 0.0f});
+	if (moveFlags & MOVE_MESH_LEFT) transform.move(Vector<float>{-3.0f * deltaTime,0.0f, 0.0f});
+	if (moveFlags & MOVE_MESH_RIGHT) transform.move(Vector<float>{3.0f* deltaTime,0.0f, 0.0f});
 };

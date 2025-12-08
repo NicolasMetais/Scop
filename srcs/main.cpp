@@ -14,7 +14,6 @@
 #define HEIGHT 1500
 #define WIDTH 1500
 
-using Clock = std::chrono::high_resolution_clock;
 int main(int ac, char **av) {
     if (ac != 2)
     {

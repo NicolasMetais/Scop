@@ -24,6 +24,7 @@ class App {
 		Mouse mouse;
 
 		bool running;
+		bool mouselock = true;
 		float fps;
 		float deltaTime;
 

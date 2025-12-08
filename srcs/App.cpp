@@ -23,12 +23,12 @@ App::~App(){};
 void App::processEvents() {
 	SDL_Event e;
 	while (SDL_PollEvent(&e)) {
-		event(e, this->camera, this->running);
-		mouse.processEvent(e);
-		keyboard.processEvent(e, this->running, this->renderer, this->camera, this->fps);
+		event(e, this->camera, this->running); //resize window + cross
+		mouse.processEvent(e);//mouse events
+		keyboard.processEvent(e, this->running, this->renderer, this->camera, this->fps, this->mouselock); //keyboard events
 	}
-	mouse.applyRotation(this->transform, this->camera);
-	keyboard.applyMovement(this->camera, this->transform, this->deltaTime);
+	mouse.applyRotation(this->transform, this->camera); //mouse rotation
+	keyboard.applyMovement(this->camera, this->transform, this->deltaTime); //keyboard movement
 };
 
 void App::update() {
@@ -48,15 +48,15 @@ void App::render() {
 };
 
 void App::run(){
-	SDL_GL_SetSwapInterval(0);
+	SDL_GL_SetSwapInterval(0); //Debloquer le lock a 60fps max
 
 	while(this->running)
 	{
-		this->deltaTime = timer.tick();
-		processEvents();
-		update();
-		render();
-		FPScalculator();
+		this->deltaTime = timer.tick(); //timer de milisecondes
+		processEvents(); //event handler
+		update(); //updater
+		render(); //render stuff
+		FPScalculator(); //FPShandler
 	}
 	this->renderer.cleanup(this->mesh);
 };
